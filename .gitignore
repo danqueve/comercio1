@@ -1,0 +1,11 @@
+# Archivos sensibles — NUNCA subir al repositorio
+.env
+logs/
+*.log
+
+# Dependencias
+vendor/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db

@@ -8,11 +8,23 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Búsqueda
+// Búsqueda y paginación
 $busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
+$pagina_actual = isset($_GET['pag']) && is_numeric($_GET['pag']) ? (int)$_GET['pag'] : 1;
+$por_pagina = 15;
+$offset = ($pagina_actual - 1) * $por_pagina;
+$termino = "%$busqueda%";
 
-// Consulta SQL optimizada
-// Se agregó LEFT JOIN con 'tutores' y se seleccionan datos del tutor
+// Consulta de conteo total (para calcular páginas)
+$sql_count = "SELECT COUNT(*) as total FROM alumnos a
+              WHERE a.apellido LIKE :b1 OR a.nombre LIKE :b2 OR a.dni LIKE :b3";
+$stmt_count = $pdo->prepare($sql_count);
+$stmt_count->execute(['b1' => $termino, 'b2' => $termino, 'b3' => $termino]);
+$total_registros = $stmt_count->fetch()['total'];
+$total_paginas = (int)ceil($total_registros / $por_pagina);
+if ($pagina_actual > $total_paginas && $total_paginas > 0) $pagina_actual = $total_paginas;
+
+// Consulta SQL optimizada con paginación
 $sql = "SELECT 
             a.id, a.dni, a.apellido, a.nombre, a.celular, a.id_tutor,
             t.nombre as nombre_tutor, t.apellido as apellido_tutor,
@@ -28,15 +40,15 @@ $sql = "SELECT
             a.nombre LIKE :b2 OR 
             a.dni LIKE :b3
         ORDER BY a.apellido ASC, a.nombre ASC
-        LIMIT 50"; 
+        LIMIT :limite OFFSET :offset";
 
 $stmt = $pdo->prepare($sql);
-$termino = "%$busqueda%";
-$stmt->execute([
-    'b1' => $termino, 
-    'b2' => $termino, 
-    'b3' => $termino
-]);
+$stmt->bindValue(':b1', $termino);
+$stmt->bindValue(':b2', $termino);
+$stmt->bindValue(':b3', $termino);
+$stmt->bindValue(':limite', $por_pagina, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $alumnos = $stmt->fetchAll();
 
 // --- INCLUIR CABECERA MAESTRA ---
@@ -49,9 +61,14 @@ include $base_path . 'includes/header.php';
     <!-- Encabezado y Botón Nuevo -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-people-fill text-primary me-2"></i> Listado de Alumnos</h3>
-        <a href="alta.php" class="btn btn-success shadow-sm">
-            <i class="bi bi-person-plus-fill"></i> Nuevo Alumno
-        </a>
+        <div class="d-flex gap-2">
+            <a href="exportar.php?q=<?= urlencode($busqueda) ?>" class="btn btn-outline-success btn-sm shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
+            </a>
+            <a href="alta.php" class="btn btn-success shadow-sm">
+                <i class="bi bi-person-plus-fill"></i> Nuevo Alumno
+            </a>
+        </div>
     </div>
 
     <!-- Buscador -->
@@ -90,17 +107,17 @@ include $base_path . 'includes/header.php';
                         <?php if (count($alumnos) > 0): ?>
                             <?php foreach ($alumnos as $alu): ?>
                                 <tr>
-                                    <td class="ps-3 fw-medium"><?= $alu['dni'] ?></td>
+                                    <td class="ps-3 fw-medium"><?= htmlspecialchars($alu['dni']) ?></td>
                                     <td class="fw-bold text-dark">
-                                        <?= $alu['apellido'] ?>, <?= $alu['nombre'] ?>
+                                        <?= htmlspecialchars($alu['apellido']) ?>, <?= htmlspecialchars($alu['nombre']) ?>
                                     </td>
                                     <td>
                                         <?php if ($alu['anio_curso']): ?>
                                             <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                                <?= $alu['anio_curso'] ?> "<?= $alu['division'] ?>"
+                                                <?= htmlspecialchars($alu['anio_curso']) ?> "<?= htmlspecialchars($alu['division']) ?>"
                                             </span>
                                             <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                <?= $alu['condicion'] ?>
+                                                <?= htmlspecialchars($alu['condicion']) ?>
                                             </small>
                                         <?php else: ?>
                                             <span class="badge bg-secondary bg-opacity-10 text-secondary border">No inscrito</span>
@@ -114,7 +131,7 @@ include $base_path . 'includes/header.php';
                                             <!-- Opcional: Mostrar nombre del tutor si se desea -->
                                             <?php if(isset($alu['apellido_tutor'])): ?>
                                                 <small class="d-block text-muted" style="font-size: 0.7rem;">
-                                                    <?= $alu['apellido_tutor'] ?> <?= substr($alu['nombre_tutor'],0,1) ?>.
+                                                    <?= htmlspecialchars($alu['apellido_tutor']) ?> <?= htmlspecialchars(substr($alu['nombre_tutor'],0,1)) ?>.
                                                 </small>
                                             <?php endif; ?>
                                         <?php else: ?>
@@ -165,8 +182,31 @@ include $base_path . 'includes/header.php';
                 </table>
             </div>
         </div>
-        <div class="card-footer bg-white text-muted small">
-            Mostrando <?= count($alumnos) ?> resultados.
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small">
+                <?= $total_registros ?> alumno<?= $total_registros != 1 ? 's' : '' ?> encontrado<?= $total_registros != 1 ? 's' : '' ?> • Mostrando página <?= $pagina_actual ?> de <?= max(1, $total_paginas) ?>
+            </span>
+            <?php if ($total_paginas > 1): ?>
+            <nav aria-label="Paginación de alumnos">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item <?= $pagina_actual <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?q=<?= urlencode($busqueda) ?>&pag=<?= $pagina_actual - 1 ?>">&laquo;</a>
+                    </li>
+                    <?php
+                    $inicio = max(1, $pagina_actual - 2);
+                    $fin    = min($total_paginas, $pagina_actual + 2);
+                    for ($i = $inicio; $i <= $fin; $i++):
+                    ?>
+                    <li class="page-item <?= $i == $pagina_actual ? 'active' : '' ?>">
+                        <a class="page-link" href="?q=<?= urlencode($busqueda) ?>&pag=<?= $i ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= $pagina_actual >= $total_paginas ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?q=<?= urlencode($busqueda) ?>&pag=<?= $pagina_actual + 1 ?>">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+            <?php endif; ?>
         </div>
     </div>
 

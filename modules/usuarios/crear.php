@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../../config/conexion.php';
+require_once '../../config/logger.php';
 
 // SEGURIDAD: Solo Administrador
 if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'Administrador') {
@@ -44,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 
                 $mensaje = '<div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> ¡Usuario creado correctamente!</div>';
+                audit_log($pdo, 'ALTA_USUARIO', "Usuario: $usuario | Nombre: $nombre");
             } catch (PDOException $e) {
                 $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error: ' . $e->getMessage() . '</div>';
             }

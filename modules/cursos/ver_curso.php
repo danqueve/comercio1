@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../../login.php');
@@ -53,15 +54,21 @@ include $base_path . 'includes/header.php';
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
+    <?php if (isset($_GET['msg']) && $_GET['msg'] == 'moved'): ?>
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
+            <i class="bi bi-arrow-left-right me-2"></i> El alumno fue movido a un nuevo curso correctamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
     <div class="card shadow border-0">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
             <div>
                 <h4 class="mb-0 text-dark fw-bold">
-                    <span class="text-primary"><?= $curso['anio_curso'] ?> "<?= $curso['division'] ?>"</span>
+                    <span class="text-primary"><?= htmlspecialchars($curso['anio_curso']) ?> "<?= htmlspecialchars($curso['division']) ?>"</span>
                 </h4>
                 <div class="text-muted small mt-1">
-                    <i class="bi bi-clock me-1"></i> Turno <?= $curso['turno'] ?> &bull; Listado de alumnos regulares
+                    <i class="bi bi-clock me-1"></i> Turno <?= htmlspecialchars($curso['turno']) ?> &bull; Listado de alumnos regulares
                 </div>
             </div>
             <div>
@@ -92,13 +99,13 @@ include $base_path . 'includes/header.php';
                                 <tr>
                                     <td class="ps-4 text-muted"><?= $contador++ ?></td>
                                     <td class="fw-bold text-dark">
-                                        <?= $alu['apellido'] ?>, <?= $alu['nombre'] ?>
+                                        <?= htmlspecialchars($alu['apellido']) ?>, <?= htmlspecialchars($alu['nombre']) ?>
                                     </td>
-                                    <td><?= $alu['dni'] ?></td>
-                                    <td><?= $alu['celular'] ?: '<span class="text-muted small">-</span>' ?></td>
+                                    <td><?= htmlspecialchars($alu['dni']) ?></td>
+                                    <td><?= $alu['celular'] ? htmlspecialchars($alu['celular']) : '<span class="text-muted small">-</span>' ?></td>
                                     <td>
                                         <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                            <?= $alu['estado'] ?>
+                                            <?= htmlspecialchars($alu['estado']) ?>
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
@@ -112,11 +119,15 @@ include $base_path . 'includes/header.php';
                                                 <i class="bi bi-file-pdf"></i>
                                             </a>
                                             
-                                            <!-- BOTÓN ELIMINAR INSCRIPCIÓN -->
+                                            <!-- BOTÓN CAMBIAR CURSO -->
+                                            <a href="../inscripciones/editar.php?id_inscripcion=<?= $alu['id_inscripcion'] ?>&volver=<?= $curso['id'] ?>" class="btn btn-sm btn-outline-primary" title="Cambiar de Curso">
+                                                <i class="bi bi-arrow-left-right"></i>
+                                            </a>
                                             <!-- Usamos un formulario para enviar POST seguro -->
                                             <form method="POST" action="../inscripciones/eliminar.php" class="d-inline" onsubmit="return confirm('¿Estás seguro de quitar a <?= $alu['nombre'] ?> de este curso?\n\nEsta acción NO elimina al alumno del sistema, solo borra su inscripción en este curso.');">
                                                 <input type="hidden" name="id_inscripcion" value="<?= $alu['id_inscripcion'] ?>">
                                                 <input type="hidden" name="id_curso" value="<?= $curso['id'] ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                 <button type="submit" class="btn btn-sm btn-outline-dark text-danger border-start-0" title="Eliminar del curso">
                                                     <i class="bi bi-trash"></i>
                                                 </button>

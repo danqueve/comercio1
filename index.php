@@ -8,38 +8,58 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// --- LÓGICA DE DATOS (Estadísticas) ---
+// --- LÓGICA DE DATOS (Estadísticas) — con caché de sesión de 5 min ---
+$cache_key   = 'dashboard_stats';
+$cache_ttl   = 300; // 5 minutos
+$cache_valid = isset($_SESSION[$cache_key . '_time']) && (time() - $_SESSION[$cache_key . '_time']) < $cache_ttl;
 
-// 1. Ciclo Lectivo Activo
-$stmt = $pdo->query("SELECT * FROM ciclos_lectivos WHERE activo = 1 LIMIT 1");
-$ciclo = $stmt->fetch();
-$anio_actual = $ciclo ? $ciclo['anio'] : '---';
-$id_ciclo = $ciclo ? $ciclo['id'] : 0;
+if ($cache_valid) {
+    // Leer desde caché
+    $anio_actual    = $_SESSION[$cache_key]['anio_actual'];
+    $id_ciclo       = $_SESSION[$cache_key]['id_ciclo'];
+    $total_alumnos  = $_SESSION[$cache_key]['total_alumnos'];
+    $inscritos_ciclo = $_SESSION[$cache_key]['inscritos_ciclo'];
+    $total_cursos   = $_SESSION[$cache_key]['total_cursos'];
+    $top_cursos     = $_SESSION[$cache_key]['top_cursos'];
+} else {
+    // 1. Ciclo Lectivo Activo
+    $stmt = $pdo->query("SELECT * FROM ciclos_lectivos WHERE activo = 1 LIMIT 1");
+    $ciclo = $stmt->fetch();
+    $anio_actual = $ciclo ? $ciclo['anio'] : '---';
+    $id_ciclo    = $ciclo ? $ciclo['id'] : 0;
 
-// 2. Total de Alumnos registrados (Histórico)
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM alumnos");
-$total_alumnos = $stmt->fetch()['total'];
+    // 2. Total de Alumnos registrados (Histórico)
+    $stmt = $pdo->query("SELECT COUNT(*) as total FROM alumnos");
+    $total_alumnos = $stmt->fetch()['total'];
 
-// 3. Alumnos inscritos en el ciclo ACTIVO (Regulares)
-$inscritos_ciclo = 0;
-if ($id_ciclo) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM inscripciones WHERE id_ciclo_lectivo = :ciclo AND estado = 'Regular'");
-    $stmt->execute(['ciclo' => $id_ciclo]);
-    $inscritos_ciclo = $stmt->fetch()['total'];
-}
+    // 3. Alumnos inscritos en el ciclo ACTIVO (Regulares)
+    $inscritos_ciclo = 0;
+    $total_cursos    = 0;
+    $top_cursos      = [];
+    if ($id_ciclo) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM inscripciones WHERE id_ciclo_lectivo = :ciclo AND estado = 'Regular'");
+        $stmt->execute(['ciclo' => $id_ciclo]);
+        $inscritos_ciclo = $stmt->fetch()['total'];
 
-// 4. Cursos con más alumnos (Top 4 para el panel lateral)
-$top_cursos = [];
-if ($id_ciclo) {
-    $sql_top = "SELECT c.anio_curso, c.division, c.turno, COUNT(i.id) as cantidad
-                FROM cursos c
-                LEFT JOIN inscripciones i ON c.id = i.id_curso AND i.id_ciclo_lectivo = :ciclo AND i.estado = 'Regular'
-                GROUP BY c.id
-                ORDER BY cantidad DESC
-                LIMIT 4";
-    $stmt = $pdo->prepare($sql_top);
-    $stmt->execute(['ciclo' => $id_ciclo]);
-    $top_cursos = $stmt->fetchAll();
+        // 4. Cursos con más alumnos (Top 4 para el panel lateral)
+        $stmt_tc = $pdo->prepare("SELECT COUNT(DISTINCT id_curso) as total FROM inscripciones WHERE id_ciclo_lectivo = :ciclo AND estado = 'Regular'");
+        $stmt_tc->execute(['ciclo' => $id_ciclo]);
+        $total_cursos = $stmt_tc->fetch()['total'];
+
+        $sql_top = "SELECT c.anio_curso, c.division, c.turno, COUNT(i.id) as cantidad
+                    FROM cursos c
+                    LEFT JOIN inscripciones i ON c.id = i.id_curso AND i.id_ciclo_lectivo = :ciclo AND i.estado = 'Regular'
+                    GROUP BY c.id
+                    ORDER BY cantidad DESC
+                    LIMIT 4";
+        $stmt = $pdo->prepare($sql_top);
+        $stmt->execute(['ciclo' => $id_ciclo]);
+        $top_cursos = $stmt->fetchAll();
+    }
+
+    // Guardar en caché de sesión
+    $_SESSION[$cache_key] = compact('anio_actual', 'id_ciclo', 'total_alumnos', 'inscritos_ciclo', 'total_cursos', 'top_cursos');
+    $_SESSION[$cache_key . '_time'] = time();
 }
 
 // --- INCLUIR CABECERA MAESTRA ---
@@ -109,7 +129,7 @@ include 'includes/header.php';
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted text-uppercase small mb-1">Cursos Activos</h6>
-                            <h3 class="fw-bold mb-0"><?= count($top_cursos) > 0 ? 'Activos' : '0' ?></h3>
+                            <h3 class="fw-bold mb-0"><?= $total_cursos ?></h3>
                         </div>
                     </div>
                 </div>
@@ -242,6 +262,82 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
+
+<?php 
+// Query de recaudación mensual para el gráfico
+$stmt_chart = $pdo->query(
+    "SELECT MONTH(fecha) as mes, SUM(monto) as total
+     FROM pagos
+     WHERE YEAR(fecha) = YEAR(CURDATE())
+     GROUP BY MONTH(fecha)
+     ORDER BY mes ASC"
+);
+$pagos_por_mes = $stmt_chart->fetchAll(PDO::FETCH_KEY_PAIR); // mes => total
+
+$meses_es = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+$labels  = json_encode($meses_es);
+$data    = json_encode(array_map(
+    fn($m) => round((float)($pagos_por_mes[$m] ?? 0), 2),
+    range(1, 12)
+));
+?>
+
+<div class="container mb-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-bar-chart-fill text-success me-2"></i> Recaudación Mensual <?= date('Y') ?>
+            </div>
+            <a href="modules/pagos/index.php" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-cash-stack"></i> Ver Reporte Completo
+            </a>
+        </div>
+        <div class="card-body py-4">
+            <canvas id="chartPagosMensuales" height="90"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const ctx = document.getElementById('chartPagosMensuales');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: <?= $labels ?>,
+            datasets: [{
+                label: 'Total cobrado ($)',
+                data: <?= $data ?>,
+                backgroundColor: 'rgba(25, 135, 84, 0.15)',
+                borderColor: 'rgba(25, 135, 84, 0.85)',
+                borderWidth: 2,
+                borderRadius: 6,
+                hoverBackgroundColor: 'rgba(25, 135, 84, 0.3)',
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => '$ ' + ctx.parsed.y.toLocaleString('es-AR', {minimumFractionDigits: 2})
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: v => '$ ' + Number(v).toLocaleString('es-AR')
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>
 
 <?php 
 // Incluir pie de página maestro

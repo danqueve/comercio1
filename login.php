@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'config/conexion.php';
+require_once 'config/logger.php';
 
 $error = '';
 
@@ -35,14 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['usuario'] = $user['usuario'];
                 $_SESSION['rol']     = $user['rol'];
 
+                // Auditar acceso exitoso
+                audit_log($pdo, 'LOGIN_OK', "Usuario: {$user['usuario']}");
+
                 // Redirigir al Dashboard
                 header('Location: index.php');
                 exit;
             } else {
+                $usuario_intento = htmlspecialchars(trim($_POST['usuario'] ?? ''));
+                audit_log($pdo, 'LOGIN_FAIL', "Intento fallido con usuario: $usuario_intento");
                 $error = "Usuario o contraseña incorrectos.";
             }
         } catch (PDOException $e) {
-            $error = "Error de conexión: " . $e->getMessage();
+            log_error('LOGIN', $e->getMessage());
+            $error = "Error interno del sistema. Por favor, intente más tarde.";
         }
     }
 }

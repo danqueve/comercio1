@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
+require_once '../../config/logger.php';
 
 // Verificación de seguridad
 if (!isset($_SESSION['user_id'])) {
@@ -10,12 +12,15 @@ if (!isset($_SESSION['user_id'])) {
 
 // --- NUEVO: Lógica de Eliminación (Solo Admin) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'eliminar') {
+    csrf_verify(); // Verificar token CSRF
     if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'Administrador') {
         $id_borrar = $_POST['id_pago'];
         try {
             $stmt_del = $pdo->prepare("DELETE FROM pagos WHERE id = :id");
             $stmt_del->execute(['id' => $id_borrar]);
-            
+
+            audit_log($pdo, 'ELIMINAR_PAGO', "ID pago: $id_borrar");
+
             // Redirigir para evitar reenvío del formulario y mantener filtros
             $desde = $_GET['desde'] ?? date('Y-m-01');
             $hasta = $_GET['hasta'] ?? date('Y-m-d');
@@ -30,34 +35,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 }
 // --------------------------------------------------
 
+// Item 17: Recordar filtros en sesión
+if (isset($_GET['desde']) || isset($_GET['hasta']) || isset($_GET['q'])) {
+    $_SESSION['pagos_filtros'] = [
+        'desde' => $_GET['desde'] ?? date('Y-m-01'),
+        'hasta' => $_GET['hasta'] ?? date('Y-m-d'),
+        'q'     => $_GET['q'] ?? '',
+    ];
+} elseif (isset($_SESSION['pagos_filtros']) && !isset($_GET['reset'])) {
+    $_GET = array_merge($_GET, $_SESSION['pagos_filtros']);
+}
+
 // Configuración de Fechas para el Filtro
-// Por defecto: Desde el primer día del mes actual hasta hoy
 $fecha_inicio = $_GET['desde'] ?? date('Y-m-01');
 $fecha_fin    = $_GET['hasta'] ?? date('Y-m-d');
+$busqueda_pago = trim($_GET['q'] ?? '');
+
+// Paginación
+$pagina_actual_p = isset($_GET['pag']) && is_numeric($_GET['pag']) ? (int)$_GET['pag'] : 1;
+$por_pagina_p = 20;
+$offset_p = ($pagina_actual_p - 1) * $por_pagina_p;
 
 // Ajustamos las horas para cubrir todo el día
 $inicio_sql = $fecha_inicio . ' 00:00:00';
 $fin_sql    = $fecha_fin . ' 23:59:59';
 
-// Consulta SQL
+// Condición de búsqueda reutilizable
+$where_busqueda = '';
+$termino_pago = "%$busqueda_pago%";
+if (!empty($busqueda_pago)) {
+    $where_busqueda = " AND (a.apellido LIKE :q OR a.nombre LIKE :q2 OR a.dni LIKE :q3)";
+}
+
+// Total monetario y conteo (para el resumen y paginación) — en SQL, sin cargar todas las filas
+$sql_total = "SELECT SUM(p.monto) as total_monto, COUNT(p.id) as total_filas
+              FROM pagos p
+              JOIN alumnos a ON p.id_alumno = a.id
+              WHERE p.fecha BETWEEN :inicio AND :fin" . $where_busqueda;
+$stmt_total = $pdo->prepare($sql_total);
+$stmt_total->bindValue(':inicio', $inicio_sql);
+$stmt_total->bindValue(':fin', $fin_sql);
+if (!empty($busqueda_pago)) {
+    $stmt_total->bindValue(':q',  $termino_pago);
+    $stmt_total->bindValue(':q2', $termino_pago);
+    $stmt_total->bindValue(':q3', $termino_pago);
+}
+$stmt_total->execute();
+$row_total = $stmt_total->fetch();
+$total_recaudado = $row_total['total_monto'] ?? 0;
+$total_filas_pago = $row_total['total_filas'] ?? 0;
+$total_paginas_p = (int)ceil($total_filas_pago / $por_pagina_p);
+
+// Consulta paginada
 $sql = "SELECT p.*, a.apellido, a.nombre, a.dni
         FROM pagos p
         JOIN alumnos a ON p.id_alumno = a.id
-        WHERE p.fecha BETWEEN :inicio AND :fin
-        ORDER BY p.fecha DESC";
-
+        WHERE p.fecha BETWEEN :inicio AND :fin" . $where_busqueda . "
+        ORDER BY p.fecha DESC
+        LIMIT :limite OFFSET :offset";
 $stmt = $pdo->prepare($sql);
-$stmt->execute([
-    'inicio' => $inicio_sql,
-    'fin'    => $fin_sql
-]);
-$pagos = $stmt->fetchAll();
-
-// Calcular Total Recaudado en el periodo
-$total_recaudado = 0;
-foreach ($pagos as $p) {
-    $total_recaudado += $p['monto'];
+$stmt->bindValue(':inicio', $inicio_sql);
+$stmt->bindValue(':fin', $fin_sql);
+if (!empty($busqueda_pago)) {
+    $stmt->bindValue(':q',  $termino_pago);
+    $stmt->bindValue(':q2', $termino_pago);
+    $stmt->bindValue(':q3', $termino_pago);
 }
+$stmt->bindValue(':limite', $por_pagina_p, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset_p, PDO::PARAM_INT);
+$stmt->execute();
+$pagos = $stmt->fetchAll();
 
 // --- INCLUIR CABECERA MAESTRA ---
 $base_path = '../../';
@@ -65,7 +112,6 @@ include $base_path . 'includes/header.php';
 ?>
 
 <div class="container mb-5">
-    
     <!-- Botón volver -->
     <div class="mb-4">
         <a href="../../index.php" class="btn btn-outline-secondary btn-sm">
@@ -93,10 +139,16 @@ include $base_path . 'includes/header.php';
             <h3 class="fw-bold text-dark mb-0"><i class="bi bi-cash-stack text-success me-2"></i> Reporte de Caja</h3>
             <p class="text-muted mb-0">Control de ingresos y pagos registrados.</p>
         </div>
-        <!-- Botón para imprimir el reporte actual (Opcional, se puede implementar luego) -->
-        <button class="btn btn-outline-dark btn-sm d-none" onclick="window.print()">
-            <i class="bi bi-printer"></i> Imprimir Reporte
-        </button>
+        <div class="d-flex gap-2">
+            <a href="exportar.php?desde=<?= urlencode($fecha_inicio) ?>&hasta=<?= urlencode($fecha_fin) ?>&q=<?= urlencode($busqueda_pago) ?>" class="btn btn-outline-success btn-sm shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
+            </a>
+            <?php if (isset($_SESSION['pagos_filtros'])): ?>
+            <a href="?reset=1" class="btn btn-outline-secondary btn-sm" title="Limpiar filtros guardados">
+                <i class="bi bi-x-circle"></i> Limpiar filtros
+            </a>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- FILTROS Y RESUMEN -->
@@ -106,8 +158,15 @@ include $base_path . 'includes/header.php';
         <div class="col-md-8">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-3">Filtrar por Fecha</h6>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-3">Filtrar por Fecha y Alumno</h6>
                     <form method="GET" action="" class="row g-3 align-items-end">
+                        <div class="col-md-12">
+                            <label class="form-label small">Buscar alumno</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" name="q" class="form-control border-start-0" placeholder="Nombre, Apellido o DNI..." value="<?= htmlspecialchars($busqueda_pago) ?>">
+                            </div>
+                        </div>
                         <div class="col-md-4">
                             <label class="form-label small">Desde</label>
                             <input type="date" name="desde" class="form-control" value="<?= $fecha_inicio ?>">
@@ -135,7 +194,7 @@ include $base_path . 'includes/header.php';
                         $ <?= number_format($total_recaudado, 2, ',', '.') ?>
                     </h2>
                     <small class="text-white-50 mt-2">
-                        <?= count($pagos) ?> movimientos registrados
+                        <?= $total_filas_pago ?> movimiento<?= $total_filas_pago != 1 ? 's' : '' ?> registrado<?= $total_filas_pago != 1 ? 's' : '' ?>
                     </small>
                 </div>
             </div>
@@ -173,13 +232,13 @@ include $base_path . 'includes/header.php';
                                         #<?= str_pad($p['id'], 6, '0', STR_PAD_LEFT) ?>
                                     </td>
                                     <td>
-                                        <div class="fw-bold"><?= $p['apellido'] ?>, <?= $p['nombre'] ?></div>
-                                        <div class="small text-muted">DNI: <?= $p['dni'] ?></div>
+                                        <div class="fw-bold"><?= htmlspecialchars($p['apellido']) ?>, <?= htmlspecialchars($p['nombre']) ?></div>
+                                        <div class="small text-muted">DNI: <?= htmlspecialchars($p['dni']) ?></div>
                                     </td>
-                                    <td><?= $p['concepto'] ?></td>
+                                    <td><?= htmlspecialchars($p['concepto']) ?></td>
                                     <td>
                                         <span class="badge bg-light text-dark border">
-                                            <?= $p['usuario_responsable'] ?>
+                                            <?= htmlspecialchars($p['usuario_responsable']) ?>
                                         </span>
                                     </td>
                                     <td class="text-end fw-bold text-success fs-5">
@@ -201,6 +260,7 @@ include $base_path . 'includes/header.php';
                                                 <form method="POST" action="" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este pago?\n\nEsta acción NO se puede deshacer y afectará el total de la caja.');">
                                                     <input type="hidden" name="accion" value="eliminar">
                                                     <input type="hidden" name="id_pago" value="<?= $p['id'] ?>">
+                                                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar Pago">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
@@ -223,6 +283,32 @@ include $base_path . 'includes/header.php';
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="text-muted small">
+                <?= $total_filas_pago ?> registro<?= $total_filas_pago != 1 ? 's' : '' ?> en el período &bull; Página <?= $pagina_actual_p ?> de <?= max(1, $total_paginas_p) ?>
+            </span>
+            <?php if ($total_paginas_p > 1): ?>
+            <nav aria-label="Paginación de pagos">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item <?= $pagina_actual_p <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?desde=<?= urlencode($fecha_inicio) ?>&hasta=<?= urlencode($fecha_fin) ?>&q=<?= urlencode($busqueda_pago) ?>&pag=<?= $pagina_actual_p - 1 ?>">&laquo;</a>
+                    </li>
+                    <?php
+                    $ini_p = max(1, $pagina_actual_p - 2);
+                    $fin_p = min($total_paginas_p, $pagina_actual_p + 2);
+                    for ($i = $ini_p; $i <= $fin_p; $i++):
+                    ?>
+                    <li class="page-item <?= $i == $pagina_actual_p ? 'active' : '' ?>">
+                        <a class="page-link" href="?desde=<?= urlencode($fecha_inicio) ?>&hasta=<?= urlencode($fecha_fin) ?>&q=<?= urlencode($busqueda_pago) ?>&pag=<?= $i ?>"><?= $i ?></a>
+                    </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= $pagina_actual_p >= $total_paginas_p ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?desde=<?= urlencode($fecha_inicio) ?>&hasta=<?= urlencode($fecha_fin) ?>&q=<?= urlencode($busqueda_pago) ?>&pag=<?= $pagina_actual_p + 1 ?>">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+            <?php endif; ?>
         </div>
     </div>
 </div>

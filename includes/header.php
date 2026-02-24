@@ -118,10 +118,10 @@ if (!isset($base_path)) {
                         <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                             <i class="bi bi-person-fill"></i>
                         </div>
-                        <span>Usuario</span>
+                        <span><?= htmlspecialchars($_SESSION['nombre'] ?? 'Usuario') ?></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item py-2" href="#"><i class="bi bi-gear me-2 text-muted"></i> Mi Perfil</a></li>
+                        <li><a class="dropdown-item py-2" href="<?= $base_path ?>modules/usuarios/perfil.php"><i class="bi bi-gear me-2 text-muted"></i> Mi Perfil</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger py-2" href="<?= $base_path ?>logout.php">
                             <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión

@@ -1,42 +1,47 @@
 <?php
 /**
- * Archivo de conexión a la Base de Datos usando PDO.
- * Proyecto: Sistema Escuela de Comercio N° 1
+ * Conexión a la Base de Datos usando PDO.
+ * Las credenciales se leen desde el archivo .env (nunca hardcodeadas aquí).
  */
 
-// Configuración de credenciales
-// NOTA: En un servidor real, estos datos deberían estar en variables de entorno (.env)
-// Si usas XAMPP, el usuario suele ser 'root' y la contraseña vacía ''.
-$host     = 'localhost';
-$dbname   = 'c2721666_comer1';
-$username = 'c2721666_comer1'; 
-$password = 'waGU39zufa'; 
-$charset  = 'utf8mb4'; // Crucial para ñ, acentos y caracteres especiales
+require_once __DIR__ . '/logger.php';
+
+// --- Leer .env manualmente (sin dependencias externas) ---
+$env_file = __DIR__ . '/../.env';
+if (file_exists($env_file)) {
+    $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue; // Ignorar comentarios
+        if (strpos($line, '=') !== false) {
+            [$key, $value] = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($value);
+        }
+    }
+}
+
+// --- Credenciales desde variables de entorno ---
+$host    = $_ENV['DB_HOST']    ?? 'localhost';
+$dbname  = $_ENV['DB_NAME']    ?? '';
+$username = $_ENV['DB_USER']   ?? '';
+$password = $_ENV['DB_PASS']   ?? '';
+$charset  = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
 
 // Data Source Name (DSN)
 $dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
 
 // Opciones de PDO para mayor seguridad y facilidad de uso
 $options = [
-    // Lanza excepciones en caso de error (útil para try-catch)
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    // Devuelve los resultados como arrays asociativos (clave => valor)
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    // Desactiva la emulación de sentencias preparadas (mayor seguridad real)
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
 try {
-    // Intentamos crear la conexión
     $pdo = new PDO($dsn, $username, $password, $options);
-    
-    // Si llegamos aquí, la conexión fue exitosa. 
-    // Comenta la línea de abajo en producción para no ensuciar la pantalla.
-    // echo "Conexión exitosa a la base de datos."; 
-
 } catch (PDOException $e) {
-    // Si hay error, lo capturamos y detenemos todo para no exponer datos sensibles
-    // En producción, podrías guardar $e->getMessage() en un archivo de log
-    die("Error de conexión a la base de datos: " . $e->getMessage());
+    // Loguear el error real internamente
+    log_error('CONEXION_BD', $e->getMessage());
+    // Mostrar mensaje genérico al usuario
+    die("Error: No se pudo conectar a la base de datos. Contacte al administrador del sistema.");
 }
 ?>

@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
+require_once '../../config/logger.php';
 
 // Verificación de seguridad
 if (!isset($_SESSION['user_id'])) {
@@ -9,6 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify(); // Validar token CSRF antes de cualquier acción
     $id_inscripcion = $_POST['id_inscripcion'] ?? null;
     $id_curso       = $_POST['id_curso'] ?? null; // Para saber a dónde volver después de borrar
 
@@ -17,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Eliminar solo la inscripción (el alumno sigue existiendo en el sistema)
             $stmt = $pdo->prepare("DELETE FROM inscripciones WHERE id = :id");
             $stmt->execute(['id' => $id_inscripcion]);
+
+            audit_log($pdo, 'ELIMINAR_INSCRIPCION', "ID inscripción: $id_inscripcion");
             
             // Redirigir al curso con mensaje de éxito
             if($id_curso) {
@@ -27,7 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
 
         } catch (PDOException $e) {
-            die("Error al eliminar inscripción: " . $e->getMessage());
+            log_error('ELIMINAR_INSCRIPCION', $e->getMessage());
+            die("Error al eliminar la inscripción. Por favor, intente nuevamente.");
         }
     }
 }

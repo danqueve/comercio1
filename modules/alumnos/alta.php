@@ -2,6 +2,7 @@
 session_start();
 // Ajustamos la ruta porque estamos dos carpetas adentro (modules/alumnos)
 require_once '../../config/conexion.php';
+require_once '../../config/logger.php';
 
 // Verificar permisos (Solo Admin y Auxiliares pueden inscribir)
 if (!isset($_SESSION['user_id'])) {
@@ -100,6 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Si todo salió bien, confirmamos los cambios
         $pdo->commit();
+
+        // Registrar en el log de auditoría
+        audit_log($pdo, 'ALTA_ALUMNO', "DNI: $alu_dni | Nombre: $alu_apellido $alu_nombre");
         
         // Mensaje con botón para inscribir inmediatamente
         $mensaje = "¡Alumno registrado correctamente! <br> 
