@@ -28,8 +28,8 @@ $sql = "SELECT
 $stmt = $pdo->prepare($sql);
 $termino = "%$busqueda%";
 $stmt->execute([
-    'b1' => $termino, 
-    'b2' => $termino, 
+    'b1' => $termino,
+    'b2' => $termino,
     'b3' => $termino
 ]);
 $tutores = $stmt->fetchAll();
@@ -40,13 +40,22 @@ include $base_path . 'includes/header.php';
 ?>
 
 <div class="container">
-    
-    <!-- Encabezado y Botón Nuevo -->
+
+    <!-- Encabezado y Botones -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-person-video3 text-primary me-2"></i> Gestión de Tutores</h3>
-        <a href="alta.php" class="btn btn-success shadow-sm">
-            <i class="bi bi-person-plus-fill"></i> Nuevo Tutor
-        </a>
+        <div class="d-flex gap-2">
+            <a href="imprimir_lista.php?q=<?= urlencode($busqueda) ?>" target="_blank"
+                class="btn btn-outline-danger btn-sm shadow-sm">
+                <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+            </a>
+            <a href="exportar.php?q=<?= urlencode($busqueda) ?>" class="btn btn-outline-success btn-sm shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
+            </a>
+            <a href="alta.php" class="btn btn-success shadow-sm">
+                <i class="bi bi-person-plus-fill"></i> Nuevo Tutor
+            </a>
+        </div>
     </div>
 
     <!-- Buscador -->
@@ -55,8 +64,11 @@ include $base_path . 'includes/header.php';
             <form method="GET" action="" class="row g-2">
                 <div class="col-md-10">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Buscar por Apellido, Nombre o DNI..." value="<?= htmlspecialchars($busqueda) ?>">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0 ps-0"
+                            placeholder="Buscar por Apellido, Nombre o DNI..."
+                            value="<?= htmlspecialchars($busqueda) ?>">
                     </div>
                 </div>
                 <div class="col-md-2 d-grid">
@@ -87,15 +99,16 @@ include $base_path . 'includes/header.php';
                                 <tr>
                                     <!-- DNI -->
                                     <td class="ps-3 fw-medium"><?= $tutor['dni'] ?></td>
-                                    
+
                                     <!-- Apellido y Nombre -->
                                     <td class="fw-bold text-dark">
                                         <?= $tutor['apellido'] ?>, <?= $tutor['nombre'] ?>
                                     </td>
-                                    
+
                                     <!-- Dirección -->
                                     <td>
-                                        <span class="text-truncate d-block" style="max-width: 200px;" title="<?= $tutor['direccion'] ?>">
+                                        <span class="text-truncate d-block" style="max-width: 200px;"
+                                            title="<?= $tutor['direccion'] ?>">
                                             <?= $tutor['direccion'] ?: '<span class="text-muted small">-</span>' ?>
                                         </span>
                                     </td>
@@ -124,17 +137,21 @@ include $base_path . 'includes/header.php';
                                     <td class="text-end pe-3">
                                         <div class="btn-group" role="group">
                                             <!-- Ver Ficha (Apunta a ver.php) -->
-                                            <a href="ver.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-primary" title="Ver Ficha y Alumnos">
+                                            <a href="ver.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-primary"
+                                                title="Ver Ficha y Alumnos">
                                                 <i class="bi bi-eye"></i> Ver Alumnos
                                             </a>
-                                            
+
                                             <!-- Editar -->
-                                            <a href="editar.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Editar Datos">
+                                            <a href="editar.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                                title="Editar Datos">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            
+
                                             <!-- Eliminar -->
-                                            <a href="eliminar.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Está seguro de eliminar este tutor?');" title="Eliminar">
+                                            <a href="eliminar.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('¿Está seguro de eliminar este tutor?');"
+                                                title="Eliminar">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
@@ -162,6 +179,6 @@ include $base_path . 'includes/header.php';
 
 </div>
 
-<?php 
-include $base_path . 'includes/footer.php'; 
+<?php
+include $base_path . 'includes/footer.php';
 ?>

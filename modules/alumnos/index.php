@@ -10,19 +10,58 @@ if (!isset($_SESSION['user_id'])) {
 
 // Búsqueda y paginación
 $busqueda = isset($_GET['q']) ? trim($_GET['q']) : '';
-$pagina_actual = isset($_GET['pag']) && is_numeric($_GET['pag']) ? (int)$_GET['pag'] : 1;
+$filtro_curso = isset($_GET['curso']) ? trim($_GET['curso']) : ''; // Filtro por curso (ej: "1ro 1")
+$filtro_turno = isset($_GET['turno']) ? trim($_GET['turno']) : ''; // Filtro por turno (ej: "Mañana")
+$pagina_actual = isset($_GET['pag']) && is_numeric($_GET['pag']) ? (int) $_GET['pag'] : 1;
 $por_pagina = 15;
 $offset = ($pagina_actual - 1) * $por_pagina;
 $termino = "%$busqueda%";
 
-// Consulta de conteo total (para calcular páginas)
-$sql_count = "SELECT COUNT(*) as total FROM alumnos a
-              WHERE a.apellido LIKE :b1 OR a.nombre LIKE :b2 OR a.dni LIKE :b3";
-$stmt_count = $pdo->prepare($sql_count);
-$stmt_count->execute(['b1' => $termino, 'b2' => $termino, 'b3' => $termino]);
+// Construir WHERE y JOIN según el modo de filtro
+if ($filtro_curso !== '') {
+    // Modo: filtrar alumnos por curso (anio_curso + division separados por espacio)
+    $partes_curso = explode(' ', $filtro_curso, 2);
+    $anio_b = $partes_curso[0] ?? '';
+    $divis_b = $partes_curso[1] ?? '';
+
+    // Condición extra de turno (opcional)
+    $extra_turno_where = $filtro_turno !== '' ? ' AND c.turno = :turno' : '';
+    $params_count = ['anio' => $anio_b, 'divis' => $divis_b];
+    if ($filtro_turno !== '')
+        $params_count['turno'] = $filtro_turno;
+
+    $sql_count = "SELECT COUNT(*) as total
+                  FROM alumnos a
+                  INNER JOIN inscripciones i ON a.id = i.id_alumno
+                      AND i.id_ciclo_lectivo = (SELECT id FROM ciclos_lectivos WHERE activo = 1 LIMIT 1)
+                  INNER JOIN cursos c ON i.id_curso = c.id
+                  WHERE c.anio_curso = :anio AND c.division = :divis$extra_turno_where";
+    $stmt_count = $pdo->prepare($sql_count);
+    $stmt_count->execute($params_count);
+
+    $sql_join_where = "INNER JOIN inscripciones i ON a.id = i.id_alumno
+                AND i.id_ciclo_lectivo = (SELECT id FROM ciclos_lectivos WHERE activo = 1 LIMIT 1)
+           INNER JOIN cursos c ON i.id_curso = c.id
+           LEFT JOIN tutores t ON a.id_tutor = t.id
+           WHERE c.anio_curso = :anio AND c.division = :divis$extra_turno_where";
+} else {
+    // Modo: búsqueda libre por apellido, nombre o DNI
+    $sql_count = "SELECT COUNT(*) as total FROM alumnos a
+                  WHERE a.apellido LIKE :b1 OR a.nombre LIKE :b2 OR a.dni LIKE :b3";
+    $stmt_count = $pdo->prepare($sql_count);
+    $stmt_count->execute(['b1' => $termino, 'b2' => $termino, 'b3' => $termino]);
+
+    $sql_join_where = "LEFT JOIN tutores t ON a.id_tutor = t.id
+           LEFT JOIN inscripciones i ON a.id = i.id_alumno
+                AND i.id_ciclo_lectivo = (SELECT id FROM ciclos_lectivos WHERE activo = 1 LIMIT 1)
+           LEFT JOIN cursos c ON i.id_curso = c.id
+           WHERE a.apellido LIKE :b1 OR a.nombre LIKE :b2 OR a.dni LIKE :b3";
+}
+
 $total_registros = $stmt_count->fetch()['total'];
-$total_paginas = (int)ceil($total_registros / $por_pagina);
-if ($pagina_actual > $total_paginas && $total_paginas > 0) $pagina_actual = $total_paginas;
+$total_paginas = (int) ceil($total_registros / $por_pagina);
+if ($pagina_actual > $total_paginas && $total_paginas > 0)
+    $pagina_actual = $total_paginas;
 
 // Consulta SQL optimizada con paginación
 $sql = "SELECT 
@@ -31,21 +70,21 @@ $sql = "SELECT
             c.anio_curso, c.division, c.turno,
             i.estado as condicion, i.id as id_inscripcion
         FROM alumnos a
-        LEFT JOIN tutores t ON a.id_tutor = t.id
-        LEFT JOIN inscripciones i ON a.id = i.id_alumno 
-            AND i.id_ciclo_lectivo = (SELECT id FROM ciclos_lectivos WHERE activo = 1 LIMIT 1)
-        LEFT JOIN cursos c ON i.id_curso = c.id
-        WHERE 
-            a.apellido LIKE :b1 OR 
-            a.nombre LIKE :b2 OR 
-            a.dni LIKE :b3
+        $sql_join_where
         ORDER BY a.apellido ASC, a.nombre ASC
         LIMIT :limite OFFSET :offset";
 
 $stmt = $pdo->prepare($sql);
-$stmt->bindValue(':b1', $termino);
-$stmt->bindValue(':b2', $termino);
-$stmt->bindValue(':b3', $termino);
+if ($filtro_curso !== '') {
+    $stmt->bindValue(':anio', $anio_b);
+    $stmt->bindValue(':divis', $divis_b);
+    if ($filtro_turno !== '')
+        $stmt->bindValue(':turno', $filtro_turno);
+} else {
+    $stmt->bindValue(':b1', $termino);
+    $stmt->bindValue(':b2', $termino);
+    $stmt->bindValue(':b3', $termino);
+}
 $stmt->bindValue(':limite', $por_pagina, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
@@ -57,12 +96,24 @@ include $base_path . 'includes/header.php';
 ?>
 
 <div class="container">
-    
+
     <!-- Encabezado y Botón Nuevo -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3><i class="bi bi-people-fill text-primary me-2"></i> Listado de Alumnos</h3>
+        <h3><i class="bi bi-people-fill text-primary me-2"></i> Listado de Alumnos
+            <?php if ($filtro_curso !== ''): ?>
+                <small class="text-muted fs-6 ms-2">— Curso:
+                    <?= htmlspecialchars($filtro_curso) ?>    <?= $filtro_turno !== '' ? ' • ' . htmlspecialchars($filtro_turno) : '' ?></small>
+            <?php endif; ?>
+        </h3>
         <div class="d-flex gap-2">
-            <a href="exportar.php?q=<?= urlencode($busqueda) ?>" class="btn btn-outline-success btn-sm shadow-sm">
+            <?php if ($filtro_curso !== ''): ?>
+                <a href="imprimir_lista_curso.php?curso=<?= urlencode($filtro_curso) ?>&turno=<?= urlencode($filtro_turno) ?>"
+                    target="_blank" class="btn btn-outline-danger btn-sm shadow-sm">
+                    <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                </a>
+            <?php endif; ?>
+            <a href="exportar.php?q=<?= urlencode($busqueda) ?>&curso=<?= urlencode($filtro_curso) ?>&turno=<?= urlencode($filtro_turno) ?>"
+                class="btn btn-outline-success btn-sm shadow-sm">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
             </a>
             <a href="alta.php" class="btn btn-success shadow-sm">
@@ -74,17 +125,33 @@ include $base_path . 'includes/header.php';
     <!-- Buscador -->
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body">
-            <form method="GET" action="" class="row g-2">
-                <div class="col-md-10">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Buscar por Apellido, Nombre o DNI..." value="<?= htmlspecialchars($busqueda) ?>">
+            <?php if ($filtro_curso !== ''): ?>
+                <!-- Filtro activo por curso: mostrar aviso y botón para quitar filtro -->
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 fs-6">
+                        <i class="bi bi-funnel-fill me-1"></i> Mostrando alumnos del curso:
+                        <strong><?= htmlspecialchars($filtro_curso) ?></strong><?= $filtro_turno !== '' ? ' &mdash; Turno: <strong>' . htmlspecialchars($filtro_turno) . '</strong>' : '' ?>
+                    </span>
+                    <a href="index.php" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Quitar filtro
+                    </a>
+                </div>
+            <?php else: ?>
+                <form method="GET" action="" class="row g-2">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i
+                                    class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="q" class="form-control border-start-0 ps-0"
+                                placeholder="Buscar por Apellido, Nombre o DNI..."
+                                value="<?= htmlspecialchars($busqueda) ?>">
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-2 d-grid">
-                    <button type="submit" class="btn btn-primary">Buscar</button>
-                </div>
-            </form>
+                    <div class="col-md-2 d-grid">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </div>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -114,7 +181,8 @@ include $base_path . 'includes/header.php';
                                     <td>
                                         <?php if ($alu['anio_curso']): ?>
                                             <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                                <?= htmlspecialchars($alu['anio_curso']) ?> "<?= htmlspecialchars($alu['division']) ?>"
+                                                <?= htmlspecialchars($alu['anio_curso']) ?>
+                                                "<?= htmlspecialchars($alu['division']) ?>"
                                             </span>
                                             <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
                                                 <?= htmlspecialchars($alu['condicion']) ?>
@@ -123,45 +191,52 @@ include $base_path . 'includes/header.php';
                                             <span class="badge bg-secondary bg-opacity-10 text-secondary border">No inscrito</span>
                                         <?php endif; ?>
                                     </td>
-                                    
+
                                     <!-- Nueva Columna: ¿Tiene Tutor? -->
                                     <td class="text-center">
                                         <?php if (!empty($alu['id_tutor'])): ?>
-                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-1">Sí</span>
+                                            <span
+                                                class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-1">Sí</span>
                                             <!-- Opcional: Mostrar nombre del tutor si se desea -->
-                                            <?php if(isset($alu['apellido_tutor'])): ?>
+                                            <?php if (isset($alu['apellido_tutor'])): ?>
                                                 <small class="d-block text-muted" style="font-size: 0.7rem;">
-                                                    <?= htmlspecialchars($alu['apellido_tutor']) ?> <?= htmlspecialchars(substr($alu['nombre_tutor'],0,1)) ?>.
+                                                    <?= htmlspecialchars($alu['apellido_tutor']) ?>
+                                                    <?= htmlspecialchars(substr($alu['nombre_tutor'], 0, 1)) ?>.
                                                 </small>
                                             <?php endif; ?>
                                         <?php else: ?>
-                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">No</span>
+                                            <span
+                                                class="badge bg-warning bg-opacity-10 text-warning border border-warning">No</span>
                                         <?php endif; ?>
                                     </td>
 
                                     <td class="text-end pe-3">
                                         <!-- Grupo de botones de acción -->
                                         <div class="btn-group" role="group">
-                                            
+
                                             <!-- Botón Cobrar / Cooperadora -->
-                                            <a href="../../modules/pagos/registrar.php?id_alumno=<?= $alu['id'] ?>" class="btn btn-sm btn-outline-success" title="Registrar Pago / Cooperadora">
+                                            <a href="../../modules/pagos/registrar.php?id_alumno=<?= $alu['id'] ?>"
+                                                class="btn btn-sm btn-outline-success" title="Registrar Pago / Cooperadora">
                                                 <i class="bi bi-currency-dollar"></i>
                                             </a>
 
                                             <!-- Botón Inscribir (Si no tiene curso) -->
                                             <?php if (!$alu['anio_curso']): ?>
-                                                <a href="../inscripciones/nueva.php?id_alumno=<?= $alu['id'] ?>" class="btn btn-sm btn-outline-primary" title="Inscribir">
+                                                <a href="../inscripciones/nueva.php?id_alumno=<?= $alu['id'] ?>"
+                                                    class="btn btn-sm btn-outline-primary" title="Inscribir">
                                                     <i class="bi bi-journal-plus"></i>
                                                 </a>
                                             <?php endif; ?>
 
                                             <!-- Botón Ver/Editar -->
-                                            <a href="editar.php?id=<?= $alu['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Editar Datos">
+                                            <a href="editar.php?id=<?= $alu['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                                title="Editar Datos">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            
+
                                             <!-- Botón Imprimir Ficha -->
-                                            <a href="../inscripciones/imprimir_ficha.php?id_alumno=<?= $alu['id'] ?>" target="_blank" class="btn btn-sm btn-outline-danger" title="Imprimir Ficha">
+                                            <a href="../inscripciones/imprimir_ficha.php?id_alumno=<?= $alu['id'] ?>"
+                                                target="_blank" class="btn btn-sm btn-outline-danger" title="Imprimir Ficha">
                                                 <i class="bi bi-file-pdf"></i>
                                             </a>
                                         </div>
@@ -184,35 +259,47 @@ include $base_path . 'includes/header.php';
         </div>
         <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span class="text-muted small">
-                <?= $total_registros ?> alumno<?= $total_registros != 1 ? 's' : '' ?> encontrado<?= $total_registros != 1 ? 's' : '' ?> • Mostrando página <?= $pagina_actual ?> de <?= max(1, $total_paginas) ?>
+                <?= $total_registros ?> alumno<?= $total_registros != 1 ? 's' : '' ?>
+                encontrado<?= $total_registros != 1 ? 's' : '' ?> • Mostrando página <?= $pagina_actual ?> de
+                <?= max(1, $total_paginas) ?>
             </span>
+            <?php
+            // Construir los parámetros de la URL para la paginación
+            if ($filtro_curso !== '') {
+                $qs_pag = 'curso=' . urlencode($filtro_curso);
+                if ($filtro_turno !== '')
+                    $qs_pag .= '&turno=' . urlencode($filtro_turno);
+            } else {
+                $qs_pag = 'q=' . urlencode($busqueda);
+            }
+            ?>
             <?php if ($total_paginas > 1): ?>
-            <nav aria-label="Paginación de alumnos">
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item <?= $pagina_actual <= 1 ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?q=<?= urlencode($busqueda) ?>&pag=<?= $pagina_actual - 1 ?>">&laquo;</a>
-                    </li>
-                    <?php
-                    $inicio = max(1, $pagina_actual - 2);
-                    $fin    = min($total_paginas, $pagina_actual + 2);
-                    for ($i = $inicio; $i <= $fin; $i++):
-                    ?>
-                    <li class="page-item <?= $i == $pagina_actual ? 'active' : '' ?>">
-                        <a class="page-link" href="?q=<?= urlencode($busqueda) ?>&pag=<?= $i ?>"><?= $i ?></a>
-                    </li>
-                    <?php endfor; ?>
-                    <li class="page-item <?= $pagina_actual >= $total_paginas ? 'disabled' : '' ?>">
-                        <a class="page-link" href="?q=<?= urlencode($busqueda) ?>&pag=<?= $pagina_actual + 1 ?>">&raquo;</a>
-                    </li>
-                </ul>
-            </nav>
+                <nav aria-label="Paginación de alumnos">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item <?= $pagina_actual <= 1 ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?<?= $qs_pag ?>&pag=<?= $pagina_actual - 1 ?>">&laquo;</a>
+                        </li>
+                        <?php
+                        $inicio = max(1, $pagina_actual - 2);
+                        $fin = min($total_paginas, $pagina_actual + 2);
+                        for ($i = $inicio; $i <= $fin; $i++):
+                            ?>
+                            <li class="page-item <?= $i == $pagina_actual ? 'active' : '' ?>">
+                                <a class="page-link" href="?<?= $qs_pag ?>&pag=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        <li class="page-item <?= $pagina_actual >= $total_paginas ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?<?= $qs_pag ?>&pag=<?= $pagina_actual + 1 ?>">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
             <?php endif; ?>
         </div>
     </div>
 
 </div>
 
-<?php 
+<?php
 // Incluir pie de página maestro
-include $base_path . 'includes/footer.php'; 
+include $base_path . 'includes/footer.php';
 ?>

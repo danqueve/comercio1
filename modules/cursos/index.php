@@ -36,7 +36,7 @@ include $base_path . 'includes/header.php';
 ?>
 
 <div class="container">
-    
+
     <!-- Encabezado y Botón Nuevo -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-mortarboard-fill text-primary me-2"></i> Gestión de Cursos</h3>
@@ -51,8 +51,10 @@ include $base_path . 'includes/header.php';
             <form method="GET" action="" class="row g-2">
                 <div class="col-md-10">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Buscar curso (ej: 1, A, Tarde)..." value="<?= htmlspecialchars($busqueda) ?>">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control border-start-0 ps-0"
+                            placeholder="Buscar curso (ej: 1, A, Tarde)..." value="<?= htmlspecialchars($busqueda) ?>">
                     </div>
                 </div>
                 <div class="col-md-2 d-grid">
@@ -85,7 +87,8 @@ include $base_path . 'includes/header.php';
                                     <!-- Columna Nombre del Curso -->
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-initials bg-light text-primary rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
+                                            <div class="avatar-initials bg-light text-primary rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold"
+                                                style="width: 40px; height: 40px;">
                                                 <?= $curso['anio_curso'] ?>
                                             </div>
                                             <div>
@@ -99,19 +102,19 @@ include $base_path . 'includes/header.php';
 
                                     <!-- Columna Turno con Badges -->
                                     <td class="text-center">
-                                        <?php 
-                                            $badgeClass = 'bg-secondary';
-                                            $icon = 'bi-clock';
-                                            if (stripos($curso['turno'], 'Mañana') !== false) {
-                                                $badgeClass = 'bg-warning text-dark bg-opacity-25 border border-warning';
-                                                $icon = 'bi-sun-fill';
-                                            } elseif (stripos($curso['turno'], 'Tarde') !== false) {
-                                                $badgeClass = 'bg-info text-dark bg-opacity-25 border border-info';
-                                                $icon = 'bi-sunset-fill';
-                                            } elseif (stripos($curso['turno'], 'Vespertino') !== false || stripos($curso['turno'], 'Noche') !== false) {
-                                                $badgeClass = 'bg-dark text-light border border-dark';
-                                                $icon = 'bi-moon-stars-fill';
-                                            }
+                                        <?php
+                                        $badgeClass = 'bg-secondary';
+                                        $icon = 'bi-clock';
+                                        if (stripos($curso['turno'], 'Mañana') !== false) {
+                                            $badgeClass = 'bg-warning text-dark bg-opacity-25 border border-warning';
+                                            $icon = 'bi-sun-fill';
+                                        } elseif (stripos($curso['turno'], 'Tarde') !== false) {
+                                            $badgeClass = 'bg-info text-dark bg-opacity-25 border border-info';
+                                            $icon = 'bi-sunset-fill';
+                                        } elseif (stripos($curso['turno'], 'Vespertino') !== false || stripos($curso['turno'], 'Noche') !== false) {
+                                            $badgeClass = 'bg-dark text-light border border-dark';
+                                            $icon = 'bi-moon-stars-fill';
+                                        }
                                         ?>
                                         <span class="badge <?= $badgeClass ?> px-3 py-2 rounded-pill fw-normal">
                                             <i class="bi <?= $icon ?> me-1"></i> <?= $curso['turno'] ?>
@@ -133,15 +136,19 @@ include $base_path . 'includes/header.php';
                                     <td class="text-end pe-4">
                                         <div class="btn-group" role="group">
                                             <!-- Ver Alumnos del curso -->
-                                            <a href="../alumnos/index.php?q=<?= urlencode($curso['anio_curso'] . ' ' . $curso['division']) ?>" class="btn btn-sm btn-outline-primary" title="Ver Alumnos">
+                                            <a href="../alumnos/index.php?curso=<?= urlencode($curso['anio_curso'] . ' ' . $curso['division']) ?>&turno=<?= urlencode($curso['turno']) ?>"
+                                                class="btn btn-sm btn-outline-primary" title="Ver Alumnos">
                                                 <i class="bi bi-people"></i>
                                             </a>
                                             <!-- Editar Curso -->
-                                            <a href="editar.php?id=<?= $curso['id'] ?>" class="btn btn-sm btn-outline-secondary" title="Modificar Curso">
+                                            <a href="editar.php?id=<?= $curso['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                                title="Modificar Curso">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <!-- Eliminar (con confirmación) -->
-                                            <a href="eliminar.php?id=<?= $curso['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Está seguro de eliminar este curso?');" title="Eliminar">
+                                            <a href="eliminar.php?id=<?= $curso['id'] ?>" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('¿Está seguro de eliminar este curso?');"
+                                                title="Eliminar">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
@@ -169,6 +176,6 @@ include $base_path . 'includes/header.php';
 
 </div>
 
-<?php 
-include $base_path . 'includes/footer.php'; 
+<?php
+include $base_path . 'includes/footer.php';
 ?>
