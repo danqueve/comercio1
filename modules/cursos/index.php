@@ -1,6 +1,7 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
 // Verificar seguridad
 if (!isset($_SESSION['user_id'])) {
@@ -93,7 +94,7 @@ include $base_path . 'includes/header.php';
                                             </div>
                                             <div>
                                                 <h6 class="mb-0 fw-bold text-dark">
-                                                    <?= $curso['anio_curso'] ?>º Año "<?= $curso['division'] ?>"
+                                                    <?= htmlspecialchars($curso['anio_curso']) ?>º Año "<?= htmlspecialchars($curso['division']) ?>"
                                                 </h6>
                                                 <small class="text-muted">Ciclo Lectivo Actual</small>
                                             </div>
@@ -145,12 +146,15 @@ include $base_path . 'includes/header.php';
                                                 title="Modificar Curso">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <!-- Eliminar (con confirmación) -->
-                                            <a href="eliminar.php?id=<?= $curso['id'] ?>" class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('¿Está seguro de eliminar este curso?');"
-                                                title="Eliminar">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            <!-- Eliminar (POST + CSRF) -->
+                                            <form method="POST" action="eliminar.php" class="d-inline"
+                                                  onsubmit="return confirm('¿Está seguro de eliminar este curso?');">
+                                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                <input type="hidden" name="id" value="<?= $curso['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

@@ -1,13 +1,9 @@
 <?php
-session_start();
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 require_once '../../config/logger.php';
 
-// Solo Administradores pueden ver el log de auditoría
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'Administrador') {
-    header('Location: ../../index.php');
-    exit;
-}
+require_role(['Administrador']);
 
 // Filtros
 $filtro_accion = trim($_GET['accion'] ?? '');

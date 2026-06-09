@@ -1,11 +1,10 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
+require_once '../../config/logger.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 $id_alumno = $_GET['id_alumno'] ?? null;
 
@@ -25,16 +24,22 @@ if (!$alumno) {
 // Obtener ciclo activo
 $stmt_c = $pdo->query("SELECT * FROM ciclos_lectivos WHERE activo = 1 LIMIT 1");
 $ciclo = $stmt_c->fetch();
-$anio_actual = $ciclo ? $ciclo['anio'] : date('Y');
-$id_ciclo = $ciclo ? $ciclo['id'] : 0;
+$anio_actual = $ciclo ? $ciclo['anio'] : null;
+$id_ciclo    = $ciclo ? $ciclo['id']   : 0;
 
 $mensaje = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $monto = $_POST['monto'];
-    $concepto = $_POST['concepto'];
-    
-    if ($monto > 0 && !empty($concepto)) {
+// F5-FIX: No se puede registrar un pago sin ciclo lectivo activo
+if (!$ciclo) {
+    $mensaje = 'No hay un ciclo lectivo activo. No es posible registrar pagos. Contacte al administrador del sistema.';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $ciclo) {
+    csrf_verify();
+    $monto   = filter_input(INPUT_POST, 'monto',   FILTER_VALIDATE_FLOAT);
+    $concepto = trim($_POST['concepto'] ?? '');
+
+    if ($monto !== false && $monto > 0 && !empty($concepto)) {
         try {
             $sql = "INSERT INTO pagos (id_alumno, id_ciclo_lectivo, monto, concepto, usuario_responsable) 
                     VALUES (:id_alu, :id_ciclo, :monto, :con, :user)";
@@ -48,13 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             
             $id_pago = $pdo->lastInsertId();
-            
+            invalidar_cache_dashboard();
+
             // Redirigir a la pantalla de éxito con opciones de impresión
             header("Location: exito.php?id_pago=$id_pago");
             exit;
             
         } catch (PDOException $e) {
-            $mensaje = "Error al guardar: " . $e->getMessage();
+            log_error('REGISTRAR_PAGO', $e->getMessage());
+            $mensaje = "Error al guardar el pago. Por favor, intente nuevamente.";
         }
     } else {
         $mensaje = "El monto debe ser mayor a 0 y el concepto no puede estar vacío.";
@@ -95,19 +102,21 @@ include $base_path . 'includes/header.php';
                     <div class="alert alert-light border border-success border-opacity-25 shadow-sm mb-4">
                         <h6 class="text-success fw-bold text-uppercase small mb-1">Alumno</h6>
                         <div class="fs-5 text-dark fw-bold mb-1">
-                            <?= $alumno['apellido'] ?>, <?= $alumno['nombre'] ?>
+                            <?= htmlspecialchars($alumno['apellido']) ?>, <?= htmlspecialchars($alumno['nombre']) ?>
                         </div>
                         <div class="small text-muted">
-                            <i class="bi bi-person-vcard"></i> DNI: <?= $alumno['dni'] ?>
+                            <i class="bi bi-person-vcard"></i> DNI: <?= htmlspecialchars($alumno['dni']) ?>
                         </div>
                     </div>
 
+                    <?php if ($ciclo): ?>
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Concepto</label>
-                            <input type="text" name="concepto" class="form-control form-control-lg" value="Bono Contribución Cooperadora <?= $anio_actual ?>" required>
+                            <input type="text" name="concepto" class="form-control form-control-lg" value="Bono Contribución Cooperadora <?= htmlspecialchars($anio_actual) ?>" required>
                         </div>
-                        
+
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted">Monto ($)</label>
                             <div class="input-group input-group-lg">
@@ -123,6 +132,13 @@ include $base_path . 'includes/header.php';
                             <a href="../../modules/alumnos/index.php" class="btn btn-link text-muted text-decoration-none">Cancelar</a>
                         </div>
                     </form>
+                    <?php else: ?>
+                    <div class="text-center py-3">
+                        <a href="../../modules/alumnos/index.php" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Volver a Alumnos
+                        </a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

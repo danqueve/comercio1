@@ -9,24 +9,24 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // --- LÓGICA DE DATOS (Estadísticas) — con caché de sesión de 5 min ---
-$cache_key   = 'dashboard_stats';
-$cache_ttl   = 300; // 5 minutos
+$cache_key = 'dashboard_stats';
+$cache_ttl = 300; // 5 minutos
 $cache_valid = isset($_SESSION[$cache_key . '_time']) && (time() - $_SESSION[$cache_key . '_time']) < $cache_ttl;
 
 if ($cache_valid) {
     // Leer desde caché
-    $anio_actual    = $_SESSION[$cache_key]['anio_actual'];
-    $id_ciclo       = $_SESSION[$cache_key]['id_ciclo'];
-    $total_alumnos  = $_SESSION[$cache_key]['total_alumnos'];
+    $anio_actual = $_SESSION[$cache_key]['anio_actual'];
+    $id_ciclo = $_SESSION[$cache_key]['id_ciclo'];
+    $total_alumnos = $_SESSION[$cache_key]['total_alumnos'];
     $inscritos_ciclo = $_SESSION[$cache_key]['inscritos_ciclo'];
-    $total_cursos   = $_SESSION[$cache_key]['total_cursos'];
-    $top_cursos     = $_SESSION[$cache_key]['top_cursos'];
+    $total_cursos = $_SESSION[$cache_key]['total_cursos'];
+    $top_cursos = $_SESSION[$cache_key]['top_cursos'];
 } else {
     // 1. Ciclo Lectivo Activo
     $stmt = $pdo->query("SELECT * FROM ciclos_lectivos WHERE activo = 1 LIMIT 1");
     $ciclo = $stmt->fetch();
     $anio_actual = $ciclo ? $ciclo['anio'] : '---';
-    $id_ciclo    = $ciclo ? $ciclo['id'] : 0;
+    $id_ciclo = $ciclo ? $ciclo['id'] : 0;
 
     // 2. Total de Alumnos registrados (Histórico)
     $stmt = $pdo->query("SELECT COUNT(*) as total FROM alumnos");
@@ -34,8 +34,8 @@ if ($cache_valid) {
 
     // 3. Alumnos inscritos en el ciclo ACTIVO (Regulares)
     $inscritos_ciclo = 0;
-    $total_cursos    = 0;
-    $top_cursos      = [];
+    $total_cursos = 0;
+    $top_cursos = [];
     if ($id_ciclo) {
         $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM inscripciones WHERE id_ciclo_lectivo = :ciclo AND estado = 'Regular'");
         $stmt->execute(['ciclo' => $id_ciclo]);
@@ -64,12 +64,12 @@ if ($cache_valid) {
 
 // --- INCLUIR CABECERA MAESTRA ---
 // Definimos la ruta base como './' porque estamos en la raíz
-$base_path = './'; 
+$base_path = './';
 include 'includes/header.php';
 ?>
 
 <div class="container">
-    
+
     <!-- Encabezado de Bienvenida y Fecha -->
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
@@ -118,7 +118,7 @@ include 'includes/header.php';
                 </div>
             </div>
         </div>
-        
+
         <!-- Tarjeta 3: Cursos Activos -->
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="card h-100 border-0 shadow-sm bg-white">
@@ -159,7 +159,7 @@ include 'includes/header.php';
         <div class="col-lg-8">
             <h5 class="fw-bold mb-3 text-secondary">Accesos Rápidos</h5>
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <a href="modules/alumnos/index.php" class="text-decoration-none">
                         <div class="card h-100 bg-white border-0 shadow-sm card-hover">
                             <div class="card-body d-flex align-items-center p-4">
@@ -175,7 +175,7 @@ include 'includes/header.php';
                         </div>
                     </a>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <a href="modules/cursos/index.php" class="text-decoration-none">
                         <div class="card h-100 bg-white border-0 shadow-sm card-hover">
                             <div class="card-body d-flex align-items-center p-4">
@@ -191,43 +191,59 @@ include 'includes/header.php';
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a href="modules/vestimenta/index.php" class="text-decoration-none">
+                        <div class="card h-100 bg-white border-0 shadow-sm card-hover">
+                            <div class="card-body d-flex align-items-center p-4">
+                                <div class="bg-info text-white rounded-circle p-3 me-3 shadow-sm">
+                                    <i class="bi bi-tag fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-dark fw-bold mb-1">Vestimenta</h5>
+                                    <p class="text-muted small mb-0">Stock y ventas de uniformes.</p>
+                                </div>
+                                <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
 
             <!-- Sección Administración (Solo Admin) -->
             <?php if ($_SESSION['rol'] === 'Administrador'): ?>
-            <h5 class="fw-bold mb-3 mt-4 text-secondary">Administración</h5>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <a href="modules/usuarios/index.php" class="text-decoration-none">
-                        <div class="card h-100 bg-white border-0 shadow-sm border-start border-danger border-4">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-shield-lock text-danger fs-3 me-3"></i>
-                                    <div>
-                                        <h6 class="text-dark fw-bold mb-0">Usuarios del Sistema</h6>
-                                        <small class="text-muted">Crear o editar accesos</small>
+                <h5 class="fw-bold mb-3 mt-4 text-secondary">Administración</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="modules/usuarios/index.php" class="text-decoration-none">
+                            <div class="card h-100 bg-white border-0 shadow-sm border-start border-danger border-4">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-lock text-danger fs-3 me-3"></i>
+                                        <div>
+                                            <h6 class="text-dark fw-bold mb-0">Usuarios del Sistema</h6>
+                                            <small class="text-muted">Crear o editar accesos</small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-6">
-                    <a href="modules/ciclos/index.php" class="text-decoration-none">
-                        <div class="card h-100 bg-white border-0 shadow-sm border-start border-danger border-4">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-calendar-range text-danger fs-3 me-3"></i>
-                                    <div>
-                                        <h6 class="text-dark fw-bold mb-0">Ciclos Lectivos</h6>
-                                        <small class="text-muted">Abrir o cerrar años</small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="modules/ciclos/index.php" class="text-decoration-none">
+                            <div class="card h-100 bg-white border-0 shadow-sm border-start border-danger border-4">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-calendar-range text-danger fs-3 me-3"></i>
+                                        <div>
+                                            <h6 class="text-dark fw-bold mb-0">Ciclos Lectivos</h6>
+                                            <small class="text-muted">Abrir o cerrar años</small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </a>
+                        </a>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
         </div>
 
@@ -242,9 +258,9 @@ include 'includes/header.php';
                         <?php foreach ($top_cursos as $top): ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-4 py-3">
                                 <div>
-                                    <span class="fw-bold"><?= $top['anio_curso'] ?> "<?= $top['division'] ?>"</span>
+                                    <span class="fw-bold"><?= htmlspecialchars($top['anio_curso']) ?> "<?= htmlspecialchars($top['division']) ?>"</span>
                                     <br>
-                                    <small class="text-muted">Turno <?= $top['turno'] ?></small>
+                                    <small class="text-muted">Turno <?= htmlspecialchars($top['turno']) ?></small>
                                 </div>
                                 <span class="badge bg-light text-primary border border-primary rounded-pill">
                                     <?= $top['cantidad'] ?>
@@ -263,7 +279,7 @@ include 'includes/header.php';
     </div>
 </div>
 
-<?php 
+<?php
 // Query de recaudación mensual para el gráfico
 $stmt_chart = $pdo->query(
     "SELECT MONTH(fecha) as mes, SUM(monto) as total
@@ -274,10 +290,23 @@ $stmt_chart = $pdo->query(
 );
 $pagos_por_mes = $stmt_chart->fetchAll(PDO::FETCH_KEY_PAIR); // mes => total
 
-$meses_es = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-$labels  = json_encode($meses_es);
-$data    = json_encode(array_map(
-    fn($m) => round((float)($pagos_por_mes[$m] ?? 0), 2),
+$stmt_vest = $pdo->query(
+    "SELECT MONTH(fecha) as mes, SUM(total) as total
+     FROM vestimenta_ventas
+     WHERE YEAR(fecha) = YEAR(CURDATE())
+     GROUP BY MONTH(fecha)
+     ORDER BY mes ASC"
+);
+$vestimenta_por_mes = $stmt_vest->fetchAll(PDO::FETCH_KEY_PAIR);
+
+$meses_es = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+$labels = json_encode($meses_es);
+$data_pagos = json_encode(array_map(
+    fn($m) => round((float) ($pagos_por_mes[$m] ?? 0), 2),
+    range(1, 12)
+));
+$data_vestimenta = json_encode(array_map(
+    fn($m) => round((float) ($vestimenta_por_mes[$m] ?? 0), 2),
     range(1, 12)
 ));
 ?>
@@ -298,48 +327,59 @@ $data    = json_encode(array_map(
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="assets/js/chart.umd.min.js"></script>
 <script>
-(function() {
-    const ctx = document.getElementById('chartPagosMensuales');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: <?= $labels ?>,
-            datasets: [{
-                label: 'Total cobrado ($)',
-                data: <?= $data ?>,
-                backgroundColor: 'rgba(25, 135, 84, 0.15)',
-                borderColor: 'rgba(25, 135, 84, 0.85)',
-                borderWidth: 2,
-                borderRadius: 6,
-                hoverBackgroundColor: 'rgba(25, 135, 84, 0.3)',
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => '$ ' + ctx.parsed.y.toLocaleString('es-AR', {minimumFractionDigits: 2})
+    (function () {
+        const ctx = document.getElementById('chartPagosMensuales');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: <?= $labels ?>,
+                datasets: [
+                    {
+                        label: 'Cuotas / Pagos ($)',
+                        data: <?= $data_pagos ?>,
+                        backgroundColor: 'rgba(25, 135, 84, 0.15)',
+                        borderColor: 'rgba(25, 135, 84, 0.85)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(25, 135, 84, 0.3)',
+                    },
+                    {
+                        label: 'Vestimenta ($)',
+                        data: <?= $data_vestimenta ?>,
+                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                        borderColor: 'rgba(13, 110, 253, 0.85)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(13, 110, 253, 0.3)',
                     }
-                }
+                ]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: v => '$ ' + Number(v).toLocaleString('es-AR')
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => '$ ' + ctx.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2 })
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: v => '$ ' + Number(v).toLocaleString('es-AR')
+                        }
                     }
                 }
             }
-        }
-    });
-})();
+        });
+    })();
 </script>
 
-<?php 
+<?php
 // Incluir pie de página maestro
-include 'includes/footer.php'; 
+include 'includes/footer.php';
 ?>

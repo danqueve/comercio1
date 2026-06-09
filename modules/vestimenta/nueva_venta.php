@@ -1,21 +1,31 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 // Obtener todos los productos para el select
 $stmt = $pdo->query("SELECT id, descripcion, talle, precio_venta, stock_deposito, stock_administracion FROM vestimenta_productos ORDER BY descripcion ASC");
 $productos = $stmt->fetchAll();
+
+// F10: capturar mensaje de error si vuelve de procesar_venta.php
+$msg_error = isset($_GET['msg']) && $_GET['msg'] !== 'venta_ok'
+             ? htmlspecialchars(urldecode($_GET['msg']))
+             : null;
 
 $base_path = '../../';
 include $base_path . 'includes/header.php';
 ?>
 
 <div class="container">
+    <?php if ($msg_error): ?>
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= $msg_error === 'error_datos' ? 'Datos del formulario incorrectos. Por favor revisá los campos.' : $msg_error ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="card shadow border-0">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-cart-plus me-2"></i> Registrar Nueva Venta de Vestimenta</h5>
@@ -23,6 +33,7 @@ include $base_path . 'includes/header.php';
         </div>
         <div class="card-body p-4">
             <form action="procesar_venta.php" method="POST" id="formVenta">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle" id="tablaDetalles">
                         <thead class="table-light">
@@ -163,6 +174,24 @@ include $base_path . 'includes/header.php';
         }
 
         vincularEventos(document.querySelector('.fila-producto'));
+
+        // F10-FIX: Validar que todos los productos estén seleccionados antes de enviar
+        document.getElementById('formVenta').addEventListener('submit', function (e) {
+            const selects = document.querySelectorAll('.select-producto');
+            let invalido = false;
+            selects.forEach(function (sel) {
+                if (!sel.value) {
+                    sel.classList.add('is-invalid');
+                    invalido = true;
+                } else {
+                    sel.classList.remove('is-invalid');
+                }
+            });
+            if (invalido) {
+                e.preventDefault();
+                alert('Por favor, seleccioná un producto en cada fila antes de confirmar la venta.');
+            }
+        });
     });
 </script>
 

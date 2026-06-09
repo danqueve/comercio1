@@ -1,0 +1,2 @@
+# Bloquear acceso HTTP a los tutoriales de FPDF (no son parte del sistema)
+Require all denied

@@ -1,16 +1,14 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
-// SEGURIDAD: Solo Administrador o Supervisor debería poder crear cursos
-if (!isset($_SESSION['user_id']) || ($_SESSION['rol'] !== 'Administrador' && $_SESSION['rol'] !== 'Supervisor')) {
-    header('Location: ../../index.php');
-    exit;
-}
+require_role(['Administrador', 'Supervisor']);
 
 $mensaje = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $anio     = trim($_POST['anio']);      // Ej: "1ro", "3ro"
     $division = trim($_POST['division']);  // Ej: "A", "B"
     $turno    = $_POST['turno'];           // Mañana, Tarde, Noche
@@ -43,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mensaje = '<div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> ¡Curso <b>'.$anio.' "'.$division.'"</b> creado con éxito!</div>';
             }
         } catch (PDOException $e) {
-            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error: ' . $e->getMessage() . '</div>';
+            log_error('CREAR_CURSO', $e->getMessage());
+            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error interno. Por favor, intente nuevamente.</div>';
         }
     }
 }
@@ -80,6 +79,7 @@ include $base_path . 'includes/header.php';
                     <?php endif; ?>
 
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold small text-muted">Año / Grado</label>

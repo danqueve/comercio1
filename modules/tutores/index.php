@@ -1,6 +1,7 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
 // 1. Verificar seguridad
 if (!isset($_SESSION['user_id'])) {
@@ -98,25 +99,25 @@ include $base_path . 'includes/header.php';
                             <?php foreach ($tutores as $tutor): ?>
                                 <tr>
                                     <!-- DNI -->
-                                    <td class="ps-3 fw-medium"><?= $tutor['dni'] ?></td>
+                                    <td class="ps-3 fw-medium"><?= htmlspecialchars($tutor['dni']) ?></td>
 
                                     <!-- Apellido y Nombre -->
                                     <td class="fw-bold text-dark">
-                                        <?= $tutor['apellido'] ?>, <?= $tutor['nombre'] ?>
+                                        <?= htmlspecialchars($tutor['apellido']) ?>, <?= htmlspecialchars($tutor['nombre']) ?>
                                     </td>
 
                                     <!-- Dirección -->
                                     <td>
                                         <span class="text-truncate d-block" style="max-width: 200px;"
-                                            title="<?= $tutor['direccion'] ?>">
-                                            <?= $tutor['direccion'] ?: '<span class="text-muted small">-</span>' ?>
+                                            title="<?= htmlspecialchars($tutor['direccion'] ?? '') ?>">
+                                            <?= $tutor['direccion'] ? htmlspecialchars($tutor['direccion']) : '<span class="text-muted small">-</span>' ?>
                                         </span>
                                     </td>
 
                                     <!-- Celular -->
                                     <td>
                                         <?php if ($tutor['celular']): ?>
-                                            <span><i class="bi bi-whatsapp text-success me-1"></i> <?= $tutor['celular'] ?></span>
+                                            <span><i class="bi bi-whatsapp text-success me-1"></i> <?= htmlspecialchars($tutor['celular']) ?></span>
                                         <?php else: ?>
                                             <span class="text-muted small">-</span>
                                         <?php endif; ?>
@@ -148,12 +149,15 @@ include $base_path . 'includes/header.php';
                                                 <i class="bi bi-pencil"></i>
                                             </a>
 
-                                            <!-- Eliminar -->
-                                            <a href="eliminar.php?id=<?= $tutor['id'] ?>" class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('¿Está seguro de eliminar este tutor?');"
-                                                title="Eliminar">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            <!-- Eliminar (POST + CSRF) -->
+                                            <form method="POST" action="eliminar.php" class="d-inline"
+                                                  onsubmit="return confirm('¿Está seguro de eliminar este tutor?');">
+                                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                <input type="hidden" name="id" value="<?= $tutor['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

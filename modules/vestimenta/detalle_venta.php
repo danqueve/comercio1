@@ -1,5 +1,5 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 
 if (!isset($_SESSION['user_id'])) {

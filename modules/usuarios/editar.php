@@ -1,12 +1,10 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 
-// SEGURIDAD: Solo Administrador
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'Administrador') {
-    header('Location: ../../index.php');
-    exit;
-}
+require_role(['Administrador']);
+
+require_once '../../config/csrf.php';
 
 $id_usuario = $_GET['id'] ?? null;
 $mensaje = '';
@@ -29,6 +27,7 @@ if (!$usuario) {
 $roles = $pdo->query("SELECT * FROM roles")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $nombre   = trim($_POST['nombre']);
     $user_login = trim($_POST['usuario']);
     $password = $_POST['password']; // Puede estar vacío
@@ -75,7 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $usuario = $stmt->fetch();
 
         } catch (PDOException $e) {
-            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error: ' . $e->getMessage() . '</div>';
+            log_error('EDITAR_USUARIO', $e->getMessage());
+            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error interno. Por favor, intente nuevamente.</div>';
         }
     }
 }
@@ -112,6 +112,7 @@ include $base_path . 'includes/header.php';
                     <?php endif; ?>
 
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Nombre Completo</label>
                             <input type="text" name="nombre" class="form-control" required value="<?= htmlspecialchars($usuario['nombre_completo']) ?>">

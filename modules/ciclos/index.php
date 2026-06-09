@@ -1,14 +1,17 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 
-// SEGURIDAD: Solo Administrador puede tocar esto
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'Administrador') {
-    header('Location: ../../index.php');
-    exit;
-}
+require_role(['Administrador']);
+
+require_once '../../config/csrf.php';
 
 $mensaje = '';
+
+// Verificar CSRF para cualquier acción POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
+}
 
 // --- ACCIÓN 1: CREAR NUEVO CICLO ---
 if (isset($_POST['btn_crear'])) {
@@ -31,7 +34,8 @@ if (isset($_POST['btn_crear'])) {
                 $mensaje = '<div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> Ciclo ' . $nuevo_anio . ' creado correctamente.</div>';
             }
         } catch (PDOException $e) {
-            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error: ' . $e->getMessage() . '</div>';
+            log_error('CICLOS_CREAR', $e->getMessage());
+            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error interno. Por favor, intente nuevamente.</div>';
         }
     }
 }
@@ -55,7 +59,8 @@ if (isset($_POST['btn_activar'])) {
         
     } catch (PDOException $e) {
         $pdo->rollBack();
-        $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error al cambiar ciclo: ' . $e->getMessage() . '</div>';
+        log_error('CICLOS_ACTIVAR', $e->getMessage());
+        $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error al cambiar ciclo. Por favor, intente nuevamente.</div>';
     }
 }
 
@@ -86,6 +91,7 @@ include $base_path . 'includes/header.php';
                 </div>
                 <div class="card-body p-4">
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-muted">Año</label>
                             <input type="number" name="anio" class="form-control form-control-lg" required placeholder="Ej: 2026" min="2020" max="2100" value="<?= date('Y')+1 ?>">
@@ -134,7 +140,9 @@ include $base_path . 'includes/header.php';
                                         </td>
                                         <td class="text-end pe-4">
                                             <?php if (!$c['activo']): ?>
-                                                <form method="POST" action="" onsubmit="return confirm('¿Estás seguro? Al activar <?= $c['anio'] ?> se cerrará el ciclo actual y las nuevas inscripciones irán a este año.');">
+                                                <form method="POST" action=""
+                                                      onsubmit="return confirm('¿Estás seguro? Al activar <?= $c['anio'] ?> se cerrará el ciclo actual y las nuevas inscripciones irán a este año.');">
+                                                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                     <input type="hidden" name="id_ciclo" value="<?= $c['id'] ?>">
                                                     <button type="submit" name="btn_activar" class="btn btn-sm btn-outline-primary shadow-sm">
                                                         <i class="bi bi-toggle-on"></i> Activar

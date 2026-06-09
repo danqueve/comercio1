@@ -1,12 +1,9 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
-// 1. Verificar seguridad
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 // 2. Verificar ID válido en la URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {
@@ -20,6 +17,7 @@ $tipo_alerta = '';
 
 // 3. Procesar el Formulario al Guardar (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     // Recibir y limpiar datos (Se eliminaron email y ocupacion)
     $dni = trim($_POST['dni']);
     $apellido = trim($_POST['apellido']);
@@ -60,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($e->getCode() == 23000) { 
                 $mensaje = "Error: El DNI ingresado ya pertenece a otro tutor.";
             } else {
-                $mensaje = "Error al actualizar: " . $e->getMessage();
+                log_error('EDITAR_TUTOR', $e->getMessage());
+                $mensaje = "Error al actualizar los datos. Por favor, intente nuevamente.";
             }
             $tipo_alerta = "danger";
         }
@@ -95,7 +94,9 @@ try {
     $alumnos_vinculados = $stmt_alumnos->fetchAll();
 
 } catch (PDOException $e) {
-    die("Error de base de datos: " . $e->getMessage());
+    log_error('EDITAR_TUTOR_LOAD', $e->getMessage());
+    header('Location: index.php?mensaje=error_bd');
+    exit;
 }
 
 // --- INCLUIR CABECERA ---
@@ -123,6 +124,7 @@ include $base_path . 'includes/header.php';
                     <?php endif; ?>
 
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         
                         <!-- Datos Personales -->
                         <h6 class="text-muted border-bottom pb-2 mb-3">Datos Personales</h6>

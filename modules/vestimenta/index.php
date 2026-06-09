@@ -1,6 +1,7 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
 // Verificar seguridad
 if (!isset($_SESSION['user_id'])) {
@@ -138,11 +139,15 @@ include $base_path . 'includes/header.php';
                                                 title="Editar">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="eliminar.php?id=<?= $prod['id'] ?>" class="btn btn-sm btn-outline-danger"
-                                                title="Eliminar"
-                                                onclick="return confirm('¿Eliminar el producto: <?= addslashes(htmlspecialchars($prod['descripcion'])) ?> (Talle: <?= addslashes($prod['talle']) ?>)?')">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            <!-- Eliminar (POST + CSRF) -->
+                                            <form method="POST" action="eliminar.php" class="d-inline"
+                                                  onsubmit="return confirm('¿Eliminar el producto: <?= addslashes(htmlspecialchars($prod['descripcion'])) ?> (Talle: <?= addslashes($prod['talle']) ?>)?')">
+                                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                <input type="hidden" name="id" value="<?= $prod['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

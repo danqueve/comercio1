@@ -1,6 +1,7 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
 // Verificar seguridad
 if (!isset($_SESSION['user_id'])) {
@@ -17,11 +18,15 @@ $por_pagina = 15;
 $offset = ($pagina_actual - 1) * $por_pagina;
 $termino = "%$busqueda%";
 
+// Inicialización para evitar advertencias de variable no definida
+$anio_b  = '';
+$divis_b = '';
+
 // Construir WHERE y JOIN según el modo de filtro
 if ($filtro_curso !== '') {
     // Modo: filtrar alumnos por curso (anio_curso + division separados por espacio)
     $partes_curso = explode(' ', $filtro_curso, 2);
-    $anio_b = $partes_curso[0] ?? '';
+    $anio_b  = $partes_curso[0] ?? '';
     $divis_b = $partes_curso[1] ?? '';
 
     // Condición extra de turno (opcional)
@@ -95,7 +100,25 @@ $base_path = '../../'; // Ajustamos la ruta base para subir dos niveles
 include $base_path . 'includes/header.php';
 ?>
 
+<?php
+$mensaje = $_GET['mensaje'] ?? '';
+$alertas = [
+    'eliminado_ok'        => ['success', 'El alumno y sus datos relacionados fueron eliminados correctamente.'],
+    'error_no_encontrado' => ['danger',  'El alumno no fue encontrado.'],
+    'error_bd'            => ['danger',  'Error al eliminar. Intente nuevamente.'],
+    'error_id'            => ['danger',  'ID de alumno inválido.'],
+];
+?>
+
 <div class="container">
+
+    <?php if ($mensaje && isset($alertas[$mensaje])): ?>
+        <div class="alert alert-<?= $alertas[$mensaje][0] ?> alert-dismissible fade show shadow-sm border-0 mt-3" role="alert">
+            <i class="bi bi-<?= $alertas[$mensaje][0] === 'success' ? 'check-circle' : 'exclamation-triangle' ?>-fill me-2"></i>
+            <?= $alertas[$mensaje][1] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
     <!-- Encabezado y Botón Nuevo -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -164,8 +187,7 @@ include $base_path . 'includes/header.php';
                         <tr>
                             <th class="ps-3">DNI</th>
                             <th>Apellido y Nombre</th>
-                            <th>Situación (Ciclo Actual)</th>
-                            <!-- Cambio: Se eliminó Celular y se agregó ¿Tiene Tutor? -->
+                            <th>Curso / Estado (Ciclo Actual)</th>
                             <th class="text-center">¿Tiene Tutor?</th>
                             <th class="text-end pe-3">Acciones</th>
                         </tr>
@@ -239,6 +261,17 @@ include $base_path . 'includes/header.php';
                                                 target="_blank" class="btn btn-sm btn-outline-danger" title="Imprimir Ficha">
                                                 <i class="bi bi-file-pdf"></i>
                                             </a>
+
+                                            <!-- Botón Eliminar -->
+                                            <button type="button"
+                                                class="btn btn-sm btn-danger btn-eliminar-alumno"
+                                                title="Eliminar Alumno"
+                                                data-id="<?= $alu['id'] ?>"
+                                                data-nombre="<?= htmlspecialchars($alu['apellido'] . ', ' . $alu['nombre'], ENT_QUOTES) ?>"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalEliminarAlumno">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -298,6 +331,48 @@ include $base_path . 'includes/header.php';
     </div>
 
 </div>
+
+<!-- Modal Confirmar Eliminación -->
+<div class="modal fade" id="modalEliminarAlumno" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">¿Está seguro de eliminar al alumno?</p>
+                <p class="fw-bold fs-5 mb-3" id="modalNombreAlumno"></p>
+                <div class="alert alert-danger border-0 mb-0 py-2 small">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    Esta acción es <strong>irreversible</strong>. Se eliminarán también todas las
+                    <strong>inscripciones</strong> y <strong>pagos</strong> asociados al alumno.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="eliminar.php" id="formEliminarAlumno">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="id" id="inputIdAlumno" value="">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Sí, eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.btn-eliminar-alumno').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('modalNombreAlumno').textContent = this.dataset.nombre;
+        document.getElementById('inputIdAlumno').value = this.dataset.id;
+    });
+});
+</script>
 
 <?php
 // Incluir pie de página maestro

@@ -1,20 +1,20 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 require_once '../../config/logger.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
+require_role(['Administrador']);
+
+// Solo acepta POST para operaciones destructivas
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ver_ventas.php');
     exit;
 }
 
-// Solo administradores
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'Administrador') {
-    header('Location: ver_ventas.php?msg=sin_permiso');
-    exit;
-}
+csrf_verify();
 
-$id_venta = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$id_venta = isset($_POST['id']) ? (int) $_POST['id'] : 0;
 if (!$id_venta) {
     header('Location: ver_ventas.php');
     exit;

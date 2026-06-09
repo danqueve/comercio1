@@ -1,5 +1,5 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 require_once '../../config/csrf.php';
 require_once '../../config/logger.php';
@@ -144,3 +144,4 @@ include $base_path . 'includes/header.php';
 </div>
 
 <?php include $base_path . 'includes/footer.php'; ?>
+

@@ -1,11 +1,9 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 $id = $_GET['id'] ?? null;
 if (!$id) {
@@ -24,6 +22,7 @@ if (!$producto) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $descripcion = $_POST['descripcion'];
     $talle = $_POST['talle'];
     $stock_deposito = (int) $_POST['stock_deposito'];
@@ -70,6 +69,7 @@ include $base_path . 'includes/header.php';
                 </div>
                 <div class="card-body p-4">
                     <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Descripción</label>
                             <input type="text" name="descripcion" class="form-control" required

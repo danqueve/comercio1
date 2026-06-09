@@ -1,12 +1,9 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
-// 1. Verificar seguridad
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 // 2. Verificar ID válido
 if (!isset($_GET['id']) || empty($_GET['id'])) {
@@ -20,6 +17,7 @@ $tipo_alerta = '';
 
 // 3. Procesar el Formulario (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $anio = trim($_POST['anio_curso']);
     $division = trim($_POST['division']);
     $turno = trim($_POST['turno']);
@@ -45,7 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // header('Location: index.php?mensaje=modificado_ok');
             // exit;
         } catch (PDOException $e) {
-            $mensaje = "Error al actualizar: " . $e->getMessage();
+            log_error('EDITAR_CURSO', $e->getMessage());
+            $mensaje = "Error al actualizar el curso. Por favor, intente nuevamente.";
             $tipo_alerta = "danger";
         }
     }
@@ -64,7 +63,9 @@ try {
         exit;
     }
 } catch (PDOException $e) {
-    die("Error de base de datos: " . $e->getMessage());
+    log_error('EDITAR_CURSO_LOAD', $e->getMessage());
+    header('Location: index.php?mensaje=error_bd');
+    exit;
 }
 
 // --- INCLUIR CABECERA ---
@@ -90,6 +91,7 @@ include $base_path . 'includes/header.php';
                     <?php endif; ?>
 
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         
                         <div class="mb-3">
                             <label for="anio_curso" class="form-label">Año</label>

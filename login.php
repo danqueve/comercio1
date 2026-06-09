@@ -1,4 +1,15 @@
 <?php
+// Configurar cookie de sesión segura antes de iniciarla
+$_is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+             || (($_SERVER['SERVER_PORT'] ?? 80) == 443);
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'domain'   => '',
+    'secure'   => $_is_https,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
 session_start();
 require_once 'config/conexion.php';
 require_once 'config/logger.php';
@@ -11,8 +22,24 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
+// --- Anti-fuerza bruta: conteo de intentos fallidos en sesión por IP ---
+// Límite: 5 intentos → bloqueo 15 minutos
+const LOGIN_MAX_INTENTOS  = 5;
+const LOGIN_BLOQUEO_SEG   = 900; // 15 minutos
+
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$clave_intentos = 'login_intentos_' . md5($ip);
+$clave_tiempo   = 'login_bloqueo_hasta_' . md5($ip);
+
+// ¿Está bloqueado?
+$bloqueado_hasta = $_SESSION[$clave_tiempo] ?? 0;
+if ($bloqueado_hasta > time()) {
+    $minutos_restantes = ceil(($bloqueado_hasta - time()) / 60);
+    $error = "Demasiados intentos fallidos. Por favor espere $minutos_restantes minuto(s) antes de intentar nuevamente.";
+}
+
 // 2. Procesar el formulario al enviar
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
     $usuario = trim($_POST['usuario']);
     $password = $_POST['password'];
 
@@ -21,15 +48,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             // Buscamos el usuario en la BD (que esté activo)
-            $stmt = $pdo->prepare("SELECT u.id, u.usuario, u.password, u.nombre_completo, r.nombre as rol 
-                                   FROM usuarios u 
-                                   JOIN roles r ON u.id_rol = r.id 
+            $stmt = $pdo->prepare("SELECT u.id, u.usuario, u.password, u.nombre_completo, r.nombre as rol
+                                   FROM usuarios u
+                                   JOIN roles r ON u.id_rol = r.id
                                    WHERE u.usuario = :usuario AND u.activo = 1");
             $stmt->execute(['usuario' => $usuario]);
             $user = $stmt->fetch();
 
             // Verificamos contraseña
             if ($user && password_verify($password, $user['password'])) {
+                // Prevenir session fixation: regenerar ID ANTES de escribir datos sensibles
+                session_regenerate_id(true);
+
+                // Resetear contador de intentos fallidos
+                unset($_SESSION[$clave_intentos], $_SESSION[$clave_tiempo]);
+
                 // Login Exitoso: Guardamos datos en sesión
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['nombre']  = $user['nombre_completo'];
@@ -43,9 +76,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: index.php');
                 exit;
             } else {
+                // Incrementar contador de intentos fallidos
+                $_SESSION[$clave_intentos] = ($_SESSION[$clave_intentos] ?? 0) + 1;
+
+                if ($_SESSION[$clave_intentos] >= LOGIN_MAX_INTENTOS) {
+                    $_SESSION[$clave_tiempo] = time() + LOGIN_BLOQUEO_SEG;
+                    unset($_SESSION[$clave_intentos]);
+                    $minutos = LOGIN_BLOQUEO_SEG / 60;
+                    $error = "Demasiados intentos fallidos. Cuenta bloqueada por $minutos minutos.";
+                } else {
+                    $restantes = LOGIN_MAX_INTENTOS - $_SESSION[$clave_intentos];
+                    $error = "Usuario o contraseña incorrectos. Intentos restantes: $restantes.";
+                }
+
                 $usuario_intento = htmlspecialchars(trim($_POST['usuario'] ?? ''));
-                audit_log($pdo, 'LOGIN_FAIL', "Intento fallido con usuario: $usuario_intento");
-                $error = "Usuario o contraseña incorrectos.";
+                audit_log($pdo, 'LOGIN_FAIL', "Intento fallido con usuario: $usuario_intento — IP: $ip");
             }
         } catch (PDOException $e) {
             log_error('LOGIN', $e->getMessage());
@@ -60,8 +105,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso - Escuela Comercio N° 1</title>
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap 5 (local) -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (CDN) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
@@ -158,6 +204,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

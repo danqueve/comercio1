@@ -39,9 +39,22 @@ $options = [
 try {
     $pdo = new PDO($dsn, $username, $password, $options);
 } catch (PDOException $e) {
+
     // Loguear el error real internamente
     log_error('CONEXION_BD', $e->getMessage());
     // Mostrar mensaje genérico al usuario
     die("Error: No se pudo conectar a la base de datos. Contacte al administrador del sistema.");
+}
+
+/**
+ * Invalida la caché de estadísticas del dashboard en sesión.
+ * Llamar tras cualquier operación que altere los datos del panel:
+ * alta/baja de alumnos, inscripciones, pagos.
+ */
+function invalidar_cache_dashboard(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        unset($_SESSION['dashboard_stats'], $_SESSION['dashboard_stats_time']);
+    }
 }
 ?>

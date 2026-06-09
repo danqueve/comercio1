@@ -1,5 +1,5 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 require_once '../../config/csrf.php';
 require_once '../../config/logger.php';
@@ -27,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
             header("Location: index.php?desde=$desde&hasta=$hasta&msg=deleted");
             exit;
         } catch (PDOException $e) {
-            $error_db = "Error al eliminar: " . $e->getMessage();
+            log_error('ELIMINAR_PAGO', $e->getMessage());
+            $error_db = "Error interno al eliminar el pago. Por favor, intente nuevamente.";
         }
     } else {
         $error_db = "Acceso denegado: Solo los administradores pueden eliminar pagos.";
@@ -35,14 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 }
 // --------------------------------------------------
 
-// Item 17: Recordar filtros en sesión
-if (isset($_GET['desde']) || isset($_GET['hasta']) || isset($_GET['q'])) {
+// F7-FIX: Recordar filtros en sesión con limpieza correcta
+if (isset($_GET['reset'])) {
+    // Limpiar filtros guardados y redirigir sin el parámetro reset
+    unset($_SESSION['pagos_filtros']);
+    header('Location: index.php');
+    exit;
+} elseif (isset($_GET['desde']) || isset($_GET['hasta']) || isset($_GET['q'])) {
     $_SESSION['pagos_filtros'] = [
         'desde' => $_GET['desde'] ?? date('Y-m-01'),
         'hasta' => $_GET['hasta'] ?? date('Y-m-d'),
-        'q' => $_GET['q'] ?? '',
+        'q'     => $_GET['q']     ?? '',
     ];
-} elseif (isset($_SESSION['pagos_filtros']) && !isset($_GET['reset'])) {
+} elseif (isset($_SESSION['pagos_filtros'])) {
     $_GET = array_merge($_GET, $_SESSION['pagos_filtros']);
 }
 

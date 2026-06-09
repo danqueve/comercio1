@@ -1,13 +1,8 @@
 <?php
-session_start();
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 
-// SEGURIDAD: Solo el Administrador puede ver este módulo
-if (!isset($_SESSION['user_id']) || $_SESSION['rol'] !== 'Administrador') {
-    // Si no es admin, lo mandamos al inicio o mostramos error
-    header('Location: ../../index.php');
-    exit;
-}
+require_role(['Administrador']);
 
 // Obtener usuarios y sus roles
 $sql = "SELECT u.id, u.usuario, u.nombre_completo, u.activo, r.nombre as rol

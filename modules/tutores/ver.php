@@ -1,5 +1,5 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 
 // 1. Verificar seguridad
@@ -45,7 +45,9 @@ try {
     $alumnos = $stmt_alumnos->fetchAll();
 
 } catch (PDOException $e) {
-    die("Error de base de datos: " . $e->getMessage());
+    log_error('VER_TUTOR', $e->getMessage());
+    header('Location: index.php?mensaje=error_bd');
+    exit;
 }
 
 // --- HEADER ---

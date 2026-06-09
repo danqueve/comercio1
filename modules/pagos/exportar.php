@@ -8,13 +8,13 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Mismos parámetros de filtro que pagos/index.php
-$fecha_inicio  = $_GET['desde'] ?? date('Y-m-01');
-$fecha_fin     = $_GET['hasta'] ?? date('Y-m-d');
+$fecha_inicio = $_GET['desde'] ?? date('Y-m-01');
+$fecha_fin = $_GET['hasta'] ?? date('Y-m-d');
 $busqueda_pago = trim($_GET['q'] ?? '');
 
 $inicio_sql = $fecha_inicio . ' 00:00:00';
-$fin_sql    = $fecha_fin    . ' 23:59:59';
-$termino    = "%$busqueda_pago%";
+$fin_sql = $fecha_fin . ' 23:59:59';
+$termino = "%$busqueda_pago%";
 
 $where_busqueda = '';
 if (!empty($busqueda_pago)) {
@@ -32,12 +32,23 @@ $stmt = $pdo->prepare($sql);
 $stmt->bindValue(':inicio', $inicio_sql);
 $stmt->bindValue(':fin', $fin_sql);
 if (!empty($busqueda_pago)) {
-    $stmt->bindValue(':q',  $termino);
+    $stmt->bindValue(':q', $termino);
     $stmt->bindValue(':q2', $termino);
     $stmt->bindValue(':q3', $termino);
 }
 $stmt->execute();
 $pagos = $stmt->fetchAll();
+
+// --- NUEVO: Obtener ventas de Vestimenta para el CSV ---
+$sql_vest = "SELECT v.id, v.fecha, '-' as dni, '-' as apellido, 'VENTA VESTIMENTA' as nombre, 
+             'Venta de Productos' as concepto, v.total as monto, u.nombre_completo as usuario_responsable
+             FROM vestimenta_ventas v
+             LEFT JOIN usuarios u ON v.id_usuario = u.id
+             WHERE v.fecha BETWEEN :inicio AND :fin
+             ORDER BY v.fecha DESC";
+$stmt_v = $pdo->prepare($sql_vest);
+$stmt_v->execute(['inicio' => $inicio_sql, 'fin' => $fin_sql]);
+$ventas_v = $stmt_v->fetchAll();
 
 // Generar nombre de archivo
 $filename = 'pagos_' . str_replace('-', '', $fecha_inicio) . '_' . str_replace('-', '', $fecha_fin) . '.csv';
@@ -68,9 +79,36 @@ foreach ($pagos as $p) {
     ], ';');
 }
 
-// Fila de total
-$total = array_sum(array_column($pagos, 'monto'));
-fputcsv($output, ['', '', '', '', '', 'TOTAL', number_format($total, 2, ',', '.'), ''], ';');
+// Subtotal Pagos
+$total_pagos = array_sum(array_column($pagos, 'monto'));
+fputcsv($output, ['', '', '', '', '', 'SUBTOTAL CUOTAS', number_format($total_pagos, 2, ',', '.'), ''], ';');
+
+// Espacio separador
+fputcsv($output, ['', '', '', '', '', '', '', ''], ';');
+fputcsv($output, ['---', '---', 'SECCIÓN', 'VENTAS', 'VESTIMENTA', '---', '---', '---'], ';');
+fputcsv($output, ['', '', '', '', '', '', '', ''], ';');
+
+// Ventas Vestimenta
+foreach ($ventas_v as $vv) {
+    fputcsv($output, [
+        '#' . str_pad($vv['id'], 6, '0', STR_PAD_LEFT),
+        $vv['fecha'],
+        $vv['dni'],
+        $vv['apellido'],
+        $vv['nombre'],
+        $vv['concepto'],
+        number_format($vv['monto'], 2, ',', '.'),
+        $vv['usuario_responsable'],
+    ], ';');
+}
+
+// Subtotal Vestimenta
+$total_vest = array_sum(array_column($ventas_v, 'monto'));
+fputcsv($output, ['', '', '', '', '', 'SUBTOTAL VESTIMENTA', number_format($total_vest, 2, ',', '.'), ''], ';');
+
+// Espacio y TOTAL GENERAL
+fputcsv($output, ['', '', '', '', '', '', '', ''], ';');
+fputcsv($output, ['', '', '', '', '', 'TOTAL GENERAL NETO', number_format($total_pagos + $total_vest, 2, ',', '.'), ''], ';');
 
 fclose($output);
 exit;

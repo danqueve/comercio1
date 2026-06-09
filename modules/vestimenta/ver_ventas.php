@@ -1,6 +1,7 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../../login.php');
@@ -133,12 +134,16 @@ include $base_path . 'includes/header.php';
                                                 <i class="bi bi-eye"></i> Ver Detalle
                                             </a>
                                             <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'Administrador'): ?>
-                                                <a href="eliminar_venta.php?id=<?= $v['id'] ?>"
-                                                   class="btn btn-sm btn-outline-danger"
-                                                   title="Eliminar venta (restaura stock)"
-                                                   onclick="return confirm('Eliminar Venta #<?= str_pad($v["id"], 5, "0", STR_PAD_LEFT) ?> por $<?= number_format($v["total"], 0, ",", ".") ?>?\nSe restaurara el stock de todos los productos.')">
-                                                    <i class="bi bi-trash3"></i>
-                                                </a>
+                                                <!-- Eliminar venta (POST + CSRF) -->
+                                                <form method="POST" action="eliminar_venta.php" class="d-inline"
+                                                      onsubmit="return confirm('Eliminar Venta #<?= str_pad($v["id"], 5, "0", STR_PAD_LEFT) ?> por $<?= number_format($v["total"], 0, ",", ".") ?>?\nSe restaurará el stock de todos los productos.')">
+                                                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                                    <input type="hidden" name="id" value="<?= $v['id'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            title="Eliminar venta (restaura stock)">
+                                                        <i class="bi bi-trash3"></i>
+                                                    </button>
+                                                </form>
                                             <?php endif; ?>
                                         </div>
                                     </td>

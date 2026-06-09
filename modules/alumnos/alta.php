@@ -1,20 +1,17 @@
-<?php
-session_start();
-// Ajustamos la ruta porque estamos dos carpetas adentro (modules/alumnos)
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 require_once '../../config/logger.php';
+require_once '../../config/csrf.php';
 
-// Verificar permisos (Solo Admin y Auxiliares pueden inscribir)
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 $mensaje = '';
 $tipo_alerta = '';
 
 // --- PROCESAR FORMULARIO ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     
     // Recolectar datos del TUTOR (Ahora pueden venir vacíos)
     $tutor_dni      = trim($_POST['tutor_dni'] ?? '');
@@ -24,14 +21,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tutor_cel      = trim($_POST['tutor_celular'] ?? '');
     $parentesco     = trim($_POST['parentesco'] ?? '');
 
-    // Recolectar datos del ALUMNO
-    $alu_dni        = trim($_POST['alumno_dni']);
-    $alu_apellido   = trim($_POST['alumno_apellido']);
-    $alu_nombre     = trim($_POST['alumno_nombre']);
-    $alu_nacimiento = $_POST['alumno_nacimiento'];
-    $alu_dir        = trim($_POST['alumno_direccion']);
-    $alu_loc        = trim($_POST['alumno_localidad']);
-    $alu_cel        = trim($_POST['alumno_celular']);
+    // Recolectar y validar datos del ALUMNO
+    $alu_dni        = trim($_POST['alumno_dni'] ?? '');
+    $alu_apellido   = trim($_POST['alumno_apellido'] ?? '');
+    $alu_nombre     = trim($_POST['alumno_nombre'] ?? '');
+    $alu_nacimiento = trim($_POST['alumno_nacimiento'] ?? '');
+    $alu_dir        = trim($_POST['alumno_direccion'] ?? '');
+    $alu_loc        = trim($_POST['alumno_localidad'] ?? '');
+    $alu_cel        = trim($_POST['alumno_celular'] ?? '');
+
+    // Validaciones básicas antes de abrir transacción
+    $errores_validacion = [];
+    if (!ctype_digit($alu_dni) || strlen($alu_dni) < 6) {
+        $errores_validacion[] = "El DNI del alumno debe ser numérico y tener al menos 6 dígitos.";
+    }
+    if (empty($alu_apellido) || empty($alu_nombre)) {
+        $errores_validacion[] = "Apellido y Nombre del alumno son obligatorios.";
+    }
+    if (!empty($alu_nacimiento) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $alu_nacimiento)) {
+        $errores_validacion[] = "La fecha de nacimiento tiene un formato inválido.";
+    }
+    if (!empty($tutor_dni) && !ctype_digit($tutor_dni)) {
+        $errores_validacion[] = "El DNI del tutor debe ser numérico.";
+    }
+
+    if (!empty($errores_validacion)) {
+        throw new Exception(implode(' ', $errores_validacion));
+    }
 
     try {
         // INICIO DE TRANSACCIÓN (Para asegurar integridad de datos)
@@ -104,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Registrar en el log de auditoría
         audit_log($pdo, 'ALTA_ALUMNO', "DNI: $alu_dni | Nombre: $alu_apellido $alu_nombre");
+        invalidar_cache_dashboard();
         
         // Mensaje con botón para inscribir inmediatamente
         $mensaje = "¡Alumno registrado correctamente! <br> 
@@ -115,7 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (Exception $e) {
         // Si algo falló, deshacemos todo
         $pdo->rollBack();
-        $mensaje = "Error: " . $e->getMessage();
+        log_error('ALTA_ALUMNO', $e->getMessage());
+        $mensaje = "Error al guardar. Verifique los datos e intente nuevamente.";
         $tipo_alerta = "danger";
     }
 }
@@ -158,6 +176,7 @@ include $base_path . 'includes/header.php';
                     <?php endif; ?>
 
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         
                         <!-- SECCIÓN TUTOR -->
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
@@ -281,24 +300,21 @@ document.addEventListener("DOMContentLoaded", function() {
             let dni = this.value;
             
             if (dni.length > 5) {
-                // Llamada AJAX a la API que creamos
-                fetch(`../../modules/tutores/buscar.php?dni=${dni}`)
+                // Endpoint correcto: buscar_tutor.php en el mismo módulo (alumnos/)
+                fetch(`buscar_tutor.php?dni=${encodeURIComponent(dni)}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.success) {
-                            // Si encuentra al tutor, rellena y bloquea campos visualmente
-                            inputApellido.value = data.tutor.apellido;
-                            inputNombre.value = data.tutor.nombre;
-                            inputDireccion.value = data.tutor.direccion;
-                            inputCelular.value = data.tutor.celular;
-                            
-                            // Estilo visual
+                        // El endpoint devuelve: {found: true/false, data: {...}}
+                        if (data.found && data.data) {
+                            inputApellido.value = data.data.apellido ?? '';
+                            inputNombre.value   = data.data.nombre   ?? '';
+                            inputDireccion.value = data.data.direccion ?? '';
+                            inputCelular.value  = data.data.celular  ?? '';
+
                             inputApellido.classList.add('bg-light');
                             inputNombre.classList.add('bg-light');
                             aviso.classList.remove('d-none');
                         } else {
-                            // Si no lo encuentra, limpia (opcional) o deja editar
-                            // No limpiamos para no borrar si el usuario estaba escribiendo uno nuevo
                             inputApellido.classList.remove('bg-light');
                             inputNombre.classList.remove('bg-light');
                             aviso.classList.add('d-none');

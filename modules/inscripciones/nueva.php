@@ -1,12 +1,9 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
-// Verificación de seguridad
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_login();
 
 $id_alumno = $_GET['id_alumno'] ?? null;
 $mensaje = '';
@@ -41,6 +38,7 @@ $cursos = $stmt_cursos->fetchAll();
 
 // --- PROCESAR LA INSCRIPCIÓN ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_verify();
     $id_curso = $_POST['id_curso'];
     $observaciones = trim($_POST['observaciones']);
     $condicion = $_POST['condicion']; // Regular, Libre, etc.
@@ -60,8 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'obs'    => $observaciones
         ]);
 
-        $mensaje = "¡Inscripción exitosa para el ciclo " . $ciclo['anio'] . "!";
+        $mensaje = "¡Inscripción exitosa para el ciclo " . htmlspecialchars($ciclo['anio']) . "!";
         $tipo_alerta = "success";
+        invalidar_cache_dashboard();
 
     } catch (PDOException $e) {
         // Código 23000 es violación de integridad (Duplicado)
@@ -69,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensaje = "El alumno ya se encuentra inscrito en este ciclo lectivo.";
             $tipo_alerta = "warning";
         } else {
-            $mensaje = "Error al inscribir: " . $e->getMessage();
+            log_error('NUEVA_INSCRIPCION', $e->getMessage());
+            $mensaje = "Error al procesar la inscripción. Por favor, intente nuevamente.";
             $tipo_alerta = "danger";
         }
     }
@@ -133,6 +133,7 @@ include $base_path . 'includes/header.php';
                     </div>
 
                     <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                         <div class="mb-4">
                             <label for="id_curso" class="form-label fw-bold small text-muted">Seleccione el Curso *</label>
                             <select name="id_curso" id="id_curso" class="form-select form-select-lg" required>

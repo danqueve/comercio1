@@ -1,5 +1,5 @@
-<?php
-session_start();
+﻿<?php
+require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
 require_once '../../config/csrf.php';
 
@@ -19,6 +19,12 @@ if (!$id_curso) {
 $stmt_curso = $pdo->prepare("SELECT * FROM cursos WHERE id = :id");
 $stmt_curso->execute(['id' => $id_curso]);
 $curso = $stmt_curso->fetch();
+
+// F4-FIX: verificar que el curso existe
+if (!$curso) {
+    header('Location: index.php?mensaje=error_no_encontrado');
+    exit;
+}
 
 // 2. Alumnos inscritos en este curso (Ciclo Activo)
 // Traemos 'i.id as id_inscripcion' para poder eliminar la relación
