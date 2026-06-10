@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual del Sistema — Escuela de Comercio N°1</title>
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --azul: #1e3c72;
+            --azul-claro: #2a5298;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #212529;
+        }
+
+        /* ── Portada ─────────────────────────────────────── */
+        .portada {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            padding: 60px 40px;
+            text-align: center;
+            border-radius: 0 0 2rem 2rem;
+            margin-bottom: 40px;
+        }
+        .portada h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .portada p  { font-size: 1.1rem; opacity: 0.85; }
+
+        /* ── Índice ──────────────────────────────────────── */
+        .indice-nav { position: sticky; top: 16px; }
+        .indice-nav .list-group-item {
+            border-left: 3px solid transparent;
+            font-size: 0.85rem;
+            padding: 0.4rem 0.9rem;
+        }
+        .indice-nav .list-group-item:hover,
+        .indice-nav .list-group-item.active {
+            border-left-color: var(--azul-claro);
+            background: #e8f0fe;
+            color: var(--azul);
+        }
+
+        /* ── Secciones ───────────────────────────────────── */
+        .seccion {
+            background: #fff;
+            border-radius: 1rem;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        .seccion-titulo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 22px;
+        }
+        .seccion-titulo .icono {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .seccion-titulo h2 { font-size: 1.35rem; font-weight: 700; margin: 0; color: var(--azul); }
+        .seccion-titulo small { font-size: 0.8rem; color: #6c757d; display: block; margin-top: 2px; }
+
+        /* Subsección */
+        .subseccion { margin-bottom: 24px; }
+        .subseccion h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #343a40;
+            border-left: 4px solid var(--azul-claro);
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Pasos numerados */
+        .paso {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+        .paso .num {
+            width: 26px; height: 26px;
+            min-width: 26px;
+            background: var(--azul-claro);
+            color: #fff;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+        .paso p { margin: 0; font-size: 0.92rem; line-height: 1.5; }
+
+        /* Alertas inline */
+        .nota {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 0 8px 8px 0;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            margin: 12px 0;
+        }
+        .nota-info {
+            background: #e8f4fd;
+            border-left-color: #0ea5e9;
+        }
+        .nota-peligro {
+            background: #fde8e8;
+            border-left-color: #dc3545;
+        }
+
+        /* Tabla de campos */
+        .tabla-campos { font-size: 0.88rem; }
+        .tabla-campos th { background: #f8f9fa; color: var(--azul); font-weight: 600; }
+        .tabla-campos td { vertical-align: middle; }
+
+        /* Badge de rol */
+        .rol-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* ── Botón exportar ──────────────────────────────── */
+        #btn-exportar {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            box-shadow: 0 4px 18px rgba(30,60,114,0.4);
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border: none;
+        }
+        #btn-exportar:hover { opacity: 0.9; }
+
+        /* ── Impresión / PDF ─────────────────────────────── */
+        @media print {
+            body { background: #fff !important; }
+            #btn-exportar, .indice-nav, .portada-acciones { display: none !important; }
+            .seccion { box-shadow: none !important; border: 1px solid #dee2e6; page-break-inside: avoid; }
+            .subseccion { page-break-inside: avoid; }
+            .paso { page-break-inside: avoid; }
+            @page { size: A4; margin: 2cm; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     PORTADA
+════════════════════════════════════════ -->
+<div class="portada">
+    <i class="bi bi-mortarboard-fill" style="font-size:3rem; opacity:.85;"></i>
+    <h1 class="mt-3">Manual de Usuario</h1>
+    <p class="mb-1">Sistema de Gestión Escolar</p>
+    <p style="font-size:1.3rem; font-weight:600;">Escuela de Comercio N°1 "Gral. Manuel Belgrano"</p>
+    <p style="opacity:.7; font-size:0.9rem;">Versión 2.0 — 2026</p>
+</div>
+
+<div class="container-xl pb-5">
+<div class="row g-4">
+
+    <!-- ═══ COLUMNA ÍNDICE ═══ -->
+    <div class="col-lg-3 d-none d-lg-block">
+        <nav class="indice-nav">
+            <div class="card shadow-sm border-0">
+                <div class="card-header fw-bold text-white" style="background:var(--azul); border-radius:.8rem .8rem 0 0;">
+                    <i class="bi bi-list-ul me-2"></i>Índice
+                </div>
+                <div class="list-group list-group-flush" style="border-radius:0 0 .8rem .8rem; overflow:hidden;">
+                    <a href="#acceso"        class="list-group-item list-group-item-action">1. Acceso al Sistema</a>
+                    <a href="#dashboard"     class="list-group-item list-group-item-action">2. Panel Principal</a>
+                    <a href="#alumnos"       class="list-group-item list-group-item-action">3. Alumnos</a>
+                    <a href="#tutores"       class="list-group-item list-group-item-action">4. Tutores</a>
+                    <a href="#cursos"        class="list-group-item list-group-item-action">5. Cursos</a>
+                    <a href="#inscripciones" class="list-group-item list-group-item-action">6. Inscripciones</a>
+                    <a href="#pagos"         class="list-group-item list-group-item-action">7. Pagos</a>
+                    <a href="#vestimenta"    class="list-group-item list-group-item-action">8. Vestimenta</a>
+                    <a href="#ciclos"        class="list-group-item list-group-item-action">9. Ciclos Lectivos</a>
+                    <a href="#usuarios"      class="list-group-item list-group-item-action">10. Usuarios</a>
+                    <a href="#faq"           class="list-group-item list-group-item-action">11. Preguntas Frecuentes</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- ═══ COLUMNA CONTENIDO ═══ -->
+    <div class="col-lg-9" id="manual-content">
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             1. ACCESO AL SISTEMA
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="acceso">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#e8f0fe; color:#1e3c72;"><i class="bi bi-shield-lock-fill"></i></div>
+                <div>
+                    <h2>1. Acceso al Sistema</h2>
+                    <small>Login, cierre de sesión y seguridad</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Iniciar sesión</h3>
+                <div class="paso"><span class="num">1</span><p>Abrir el navegador y acceder a <strong>http://localhost/comercio</strong>. El sistema redirige automáticamente al formulario de ingreso.</p></div>
+                <div class="paso"><span class="num">2</span><p>Ingresar el <strong>nombre de usuario</strong> y la <strong>contraseña</strong> asignados por el administrador.</p></div>
+                <div class="paso"><span class="num">3</span><p>Hacer clic en <strong>Ingresar</strong>. Si los datos son correctos, el sistema muestra el Panel Principal.</p></div>
+                <div class="nota">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <strong>Bloqueo de seguridad:</strong> Tras <strong>5 intentos fallidos</strong> consecutivos, el acceso queda bloqueado durante <strong>15 minutos</strong> para esa sesión del navegador. Si se necesita desbloqueo inmediato, contactar al administrador.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Cerrar sesión</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en el nombre de usuario en la barra superior derecha.</p></div>
+                <div class="paso"><span class="num">2</span><p>Seleccionar <strong>Cerrar Sesión</strong> en el menú desplegable. La sesión se elimina completamente del servidor y del navegador.</p></div>
+                <div class="nota nota-info">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    Siempre cerrar sesión al terminar de usar el sistema, especialmente en computadoras compartidas.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Roles de usuario</h3>
+                <table class="table tabla-campos table-bordered">
+                    <thead><tr><th>Rol</th><th>Acceso</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="rol-badge" style="background:#d1fae5;color:#065f46;">Administrador</span></td><td>Acceso completo a todos los módulos, incluyendo gestión de usuarios y configuración.</td></tr>
+                        <tr><td><span class="rol-badge" style="background:#dbeafe;color:#1e40af;">Operador</span></td><td>Puede registrar alumnos, inscripciones, pagos y ventas de vestimenta. No puede gestionar usuarios.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             2. PANEL PRINCIPAL
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="dashboard">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#ede9fe; color:#6d28d9;"><i class="bi bi-speedometer2"></i></div>
+                <div>
+                    <h2>2. Panel Principal (Dashboard)</h2>
+                    <small>Resumen estadístico del ciclo lectivo activo</small>
+                </div>
+            </div>
+
+            <p>El Panel Principal es la primera pantalla después del login. Muestra un resumen del estado actual del establecimiento para el <strong>ciclo lectivo activo</strong>.</p>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="subseccion">
+                        <h3>Estadísticas mostradas</h3>
+                        <ul style="font-size:.92rem; line-height:2;">
+                            <li><strong>Total de alumnos registrados</strong> (histórico)</li>
+                            <li><strong>Alumnos inscriptos regulares</strong> en el ciclo activo</li>
+                            <li><strong>Total de cursos</strong> del ciclo activo</li>
+                            <li><strong>Año lectivo activo</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="subseccion">
+                        <h3>Gráfico de distribución</h3>
+                        <p style="font-size:.92rem;">El gráfico de barras muestra la cantidad de alumnos regulares por curso. Permite visualizar rápidamente cuáles son los cursos con mayor y menor matrícula.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nota nota-info">
+                <i class="bi bi-info-circle-fill me-1"></i>
+                Las estadísticas se actualizan automáticamente. Si se realizaron cambios recientes y no se reflejan, recargar la página (F5) para limpiar el caché.
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             3. ALUMNOS
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="alumnos">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#d1fae5; color:#065f46;"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <h2>3. Alumnos</h2>
+                    <small>Alta, búsqueda, edición, eliminación y exportación</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Ver listado de alumnos</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en <strong>Alumnos</strong> en la barra de navegación superior.</p></div>
+                <div class="paso"><span class="num">2</span><p>El listado muestra todos los alumnos con su DNI, apellido y nombre, curso del ciclo actual, estado de inscripción y si tiene tutor asignado.</p></div>
+                <div class="paso"><span class="num">3</span><p>Se muestran <strong>15 alumnos por página</strong>. Usar los botones de paginación al pie del listado para navegar entre páginas.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Buscar alumnos</h3>
+                <div class="paso"><span class="num">1</span><p>Escribir en el campo de búsqueda el apellido, nombre o DNI del alumno.</p></div>
+                <div class="paso"><span class="num">2</span><p>Hacer clic en <strong>Buscar</strong> o presionar Enter. El listado se filtra mostrando solo los resultados coincidentes.</p></div>
+                <div class="paso"><span class="num">3</span><p>Para volver al listado completo, borrar el texto del buscador y buscar nuevamente.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Registrar un nuevo alumno</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en el botón verde <strong>Nuevo Alumno</strong> en la parte superior derecha del listado.</p></div>
+                <div class="paso"><span class="num">2</span><p>Completar los datos del alumno. Los campos obligatorios son: <strong>DNI, Apellido y Nombre</strong>.</p></div>
+                <div class="paso"><span class="num">3</span><p>Opcionalmente completar: Fecha de Nacimiento, Dirección, Localidad, Celular.</p></div>
+                <div class="paso"><span class="num">4</span><p><strong>Tutor (opcional):</strong> Ingresar el DNI del tutor en el campo correspondiente. Si el tutor ya existe en el sistema, sus datos se cargarán automáticamente. Si es nuevo, completar todos los campos del tutor.</p></div>
+                <div class="paso"><span class="num">5</span><p>Hacer clic en <strong>Guardar Alumno</strong>. El sistema confirma el alta con un mensaje de éxito.</p></div>
+                <div class="nota">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    El DNI debe ser único en el sistema. Si ya existe un alumno con ese DNI, el sistema mostrará un error.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Editar datos de un alumno</h3>
+                <div class="paso"><span class="num">1</span><p>En el listado, hacer clic en el ícono de <strong>lápiz</strong> (editar) de la fila del alumno a modificar.</p></div>
+                <div class="paso"><span class="num">2</span><p>Modificar los campos necesarios: DNI, Apellido, Nombre, Fecha de nacimiento, Dirección, Localidad, Celular.</p></div>
+                <div class="paso"><span class="num">3</span><p><strong>Para cambiar o asignar tutor:</strong> ingresar el DNI del nuevo tutor. El sistema buscará automáticamente si ya existe.</p></div>
+                <div class="paso"><span class="num">4</span><p><strong>Para quitar el tutor:</strong> marcar la casilla <em>"Quitar tutor asociado"</em>. Si se deja el campo de DNI vacío sin marcar esta opción, el tutor actual se conserva.</p></div>
+                <div class="paso"><span class="num">5</span><p>Hacer clic en <strong>Guardar Cambios</strong>.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Eliminar un alumno</h3>
+                <div class="paso"><span class="num">1</span><p>En el listado, hacer clic en el botón rojo con ícono de <strong>papelera</strong> de la fila del alumno.</p></div>
+                <div class="paso"><span class="num">2</span><p>Aparece un cuadro de confirmación mostrando el nombre del alumno. Leer el aviso: <em>se eliminarán también todas las inscripciones y pagos</em> asociados.</p></div>
+                <div class="paso"><span class="num">3</span><p>Hacer clic en <strong>Sí, eliminar</strong> para confirmar, o <strong>Cancelar</strong> para volver.</p></div>
+                <div class="nota nota-peligro">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <strong>Esta acción es irreversible.</strong> Al eliminar un alumno se eliminan también todas sus inscripciones y pagos registrados. Solo realizar cuando sea estrictamente necesario.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Exportar listado</h3>
+                <table class="table tabla-campos table-bordered">
+                    <thead><tr><th>Botón</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><i class="bi bi-file-earmark-spreadsheet text-success"></i> <strong>Exportar CSV</strong></td><td>Descarga el listado actual (con los filtros aplicados) en formato CSV, compatible con Excel y Google Sheets.</td></tr>
+                        <tr><td><i class="bi bi-file-earmark-pdf text-danger"></i> <strong>Exportar PDF</strong></td><td>Genera un PDF con el listado de alumnos del curso seleccionado. Solo aparece cuando se está filtrando por curso.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subseccion">
+                <h3>Acciones rápidas desde el listado</h3>
+                <table class="table tabla-campos table-bordered">
+                    <thead><tr><th>Ícono</th><th>Acción</th></tr></thead>
+                    <tbody>
+                        <tr><td><i class="bi bi-currency-dollar text-success"></i></td><td>Registrar un pago para ese alumno (acceso directo a Registrar Pago).</td></tr>
+                        <tr><td><i class="bi bi-journal-plus text-primary"></i></td><td>Inscribir al alumno en un curso. Solo aparece si el alumno no tiene inscripción activa.</td></tr>
+                        <tr><td><i class="bi bi-pencil text-secondary"></i></td><td>Editar los datos del alumno.</td></tr>
+                        <tr><td><i class="bi bi-file-pdf text-danger"></i></td><td>Imprimir la ficha del alumno en PDF.</td></tr>
+                        <tr><td><i class="bi bi-trash text-danger"></i></td><td>Eliminar el alumno (con confirmación).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             4. TUTORES
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="tutores">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#fef3c7; color:#92400e;"><i class="bi bi-person-video3"></i></div>
+                <div>
+                    <h2>4. Tutores</h2>
+                    <small>Gestión de tutores / responsables de alumnos</small>
+                </div>
+            </div>
+
+            <p>Los tutores son los responsables adultos de los alumnos (padres, madres, apoderados). Un tutor puede estar a cargo de varios alumnos.</p>
+
+            <div class="subseccion">
+                <h3>Registrar un nuevo tutor</h3>
+                <div class="paso"><span class="num">1</span><p>Ir a <strong>Tutores</strong> desde el menú principal y hacer clic en <strong>Nuevo Tutor</strong>.</p></div>
+                <div class="paso"><span class="num">2</span><p>Completar: DNI, Apellido, Nombre, Dirección y Celular.</p></div>
+                <div class="paso"><span class="num">3</span><p>Hacer clic en <strong>Guardar</strong>.</p></div>
+                <div class="nota nota-info">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    Los tutores también pueden crearse directamente desde el formulario de alta de alumnos, ingresando los datos del tutor junto con los del alumno.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Ver alumnos a cargo de un tutor</h3>
+                <div class="paso"><span class="num">1</span><p>En el listado de tutores, hacer clic en el botón <strong>Ver Alumnos</strong> (ícono de ojo).</p></div>
+                <div class="paso"><span class="num">2</span><p>Se muestra la ficha del tutor con el listado de alumnos asociados.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Eliminar un tutor</h3>
+                <p style="font-size:.92rem;">Solo se puede eliminar un tutor si <strong>no tiene alumnos asociados</strong>. Si tiene alumnos a cargo, primero se deben desasignar desde la edición de cada alumno.</p>
+            </div>
+
+            <div class="subseccion">
+                <h3>Exportar listado de tutores</h3>
+                <table class="table tabla-campos table-bordered">
+                    <thead><tr><th>Botón</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><i class="bi bi-file-earmark-pdf text-danger"></i> <strong>Exportar PDF</strong></td><td>Genera un PDF con el listado completo de tutores.</td></tr>
+                        <tr><td><i class="bi bi-file-earmark-spreadsheet text-success"></i> <strong>Exportar CSV</strong></td><td>Descarga el listado en formato CSV.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             5. CURSOS
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="cursos">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#fce7f3; color:#9d174d;"><i class="bi bi-journal-bookmark-fill"></i></div>
+                <div>
+                    <h2>5. Cursos</h2>
+                    <small>Creación y gestión de cursos por año, división y turno</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Crear un nuevo curso</h3>
+                <div class="paso"><span class="num">1</span><p>Ir a <strong>Cursos</strong> y hacer clic en <strong>Nuevo Curso</strong>.</p></div>
+                <div class="paso"><span class="num">2</span><p>Completar: <strong>Año del curso</strong> (ej: 1°, 2°), <strong>División</strong> (ej: A, B) y <strong>Turno</strong> (Mañana / Tarde).</p></div>
+                <div class="paso"><span class="num">3</span><p>El sistema asigna el curso al <strong>ciclo lectivo activo</strong> automáticamente.</p></div>
+                <div class="paso"><span class="num">4</span><p>Guardar. El curso queda disponible para inscribir alumnos.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Ver alumnos de un curso</h3>
+                <div class="paso"><span class="num">1</span><p>En el listado de cursos, hacer clic en el nombre o botón <strong>Ver Curso</strong>.</p></div>
+                <div class="paso"><span class="num">2</span><p>Se muestra el listado de alumnos inscriptos con su estado (Regular, Libre, Condicional, etc.).</p></div>
+                <div class="paso"><span class="num">3</span><p>Desde esta vista se puede acceder directamente a editar la inscripción de cada alumno.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Eliminar un curso</h3>
+                <p style="font-size:.92rem;">Solo se puede eliminar un curso si <strong>no tiene alumnos inscriptos</strong>. Si tiene inscripciones activas, primero deben eliminarse o trasladarse.</p>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             6. INSCRIPCIONES
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="inscripciones">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#e0f2fe; color:#0369a1;"><i class="bi bi-pencil-square"></i></div>
+                <div>
+                    <h2>6. Inscripciones</h2>
+                    <small>Inscripción de alumnos a cursos y gestión de estados</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Inscribir un alumno a un curso</h3>
+                <div class="paso"><span class="num">1</span><p>Desde el listado de alumnos, hacer clic en el ícono <i class="bi bi-journal-plus text-primary"></i> del alumno (solo aparece si no está inscripto).</p></div>
+                <div class="paso"><span class="num">2</span><p>Seleccionar el <strong>curso</strong> al que se desea inscribir al alumno.</p></div>
+                <div class="paso"><span class="num">3</span><p>Seleccionar el <strong>estado inicial</strong>: Regular, Libre, Condicional, Promovido o Repitente.</p></div>
+                <div class="paso"><span class="num">4</span><p>Confirmar. El alumno queda inscripto en el ciclo lectivo activo.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Editar una inscripción (cambiar curso o estado)</h3>
+                <div class="paso"><span class="num">1</span><p>Desde la vista del curso (<strong>Cursos → Ver Curso</strong>), hacer clic en el ícono de edición de la inscripción del alumno.</p></div>
+                <div class="paso"><span class="num">2</span><p>Modificar el <strong>curso de destino</strong> (para traslados) y/o el <strong>estado</strong> de la inscripción.</p></div>
+                <div class="paso"><span class="num">3</span><p>Guardar los cambios.</p></div>
+                <div class="nota nota-info">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <strong>Estados disponibles:</strong> Regular, Libre, Condicional, Promovido, Repitente. El estado puede actualizarse en cualquier momento del ciclo lectivo.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Eliminar una inscripción</h3>
+                <div class="paso"><span class="num">1</span><p>Desde la vista del curso, hacer clic en el ícono de eliminar de la inscripción.</p></div>
+                <div class="paso"><span class="num">2</span><p>Confirmar la eliminación. El alumno vuelve a aparecer como "No inscripto" en el listado.</p></div>
+                <div class="nota">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    Eliminar una inscripción no elimina al alumno ni sus pagos. Solo desvincula al alumno del curso en el ciclo actual.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Imprimir ficha del alumno</h3>
+                <p style="font-size:.92rem;">Desde el listado de alumnos, hacer clic en el ícono <i class="bi bi-file-pdf text-danger"></i>. Se genera un PDF con los datos personales del alumno, tutor y su inscripción actual. Se abre en una nueva pestaña para imprimir.</p>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             7. PAGOS
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="pagos">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#d1fae5; color:#065f46;"><i class="bi bi-cash-coin"></i></div>
+                <div>
+                    <h2>7. Pagos</h2>
+                    <small>Registro de pagos, impresión de recibos y reportes de caja</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Registrar un pago</h3>
+                <div class="paso"><span class="num">1</span><p>Ir a <strong>Pagos</strong> y hacer clic en <strong>Registrar Pago</strong>, o bien usar el ícono <i class="bi bi-currency-dollar text-success"></i> desde el listado de alumnos.</p></div>
+                <div class="paso"><span class="num">2</span><p>Si se accede desde el listado de alumnos, el alumno ya estará preseleccionado. De lo contrario, buscarlo por nombre o DNI.</p></div>
+                <div class="paso"><span class="num">3</span><p>Completar los campos del pago:</p></div>
+                <table class="table tabla-campos table-bordered ms-4" style="max-width:500px;">
+                    <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Concepto</strong></td><td>Descripción del pago (ej: "Cuota Mayo", "Matrícula 2026")</td></tr>
+                        <tr><td><strong>Monto</strong></td><td>Importe en pesos</td></tr>
+                        <tr><td><strong>Fecha</strong></td><td>Se completa automáticamente con la fecha actual</td></tr>
+                    </tbody>
+                </table>
+                <div class="paso"><span class="num">4</span><p>Hacer clic en <strong>Registrar Pago</strong>. El sistema muestra la pantalla de confirmación con el resumen del pago.</p></div>
+                <div class="nota">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    Si no hay un ciclo lectivo activo, el sistema no permitirá registrar pagos. Contactar al administrador para activar el ciclo correspondiente.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Imprimir recibo</h3>
+                <p style="font-size:.92rem;">Desde la pantalla de confirmación del pago (o desde el historial), hacer clic en el botón de impresión:</p>
+                <table class="table tabla-campos table-bordered">
+                    <thead><tr><th>Opción</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Imprimir A4</strong></td><td>Genera un PDF tamaño A4 con original y duplicado del recibo en una misma hoja.</td></tr>
+                        <tr><td><strong>Imprimir Matricial</strong></td><td>Genera el recibo en formato para impresora matricial (Epson LX-350). Usa fuente Courier y formato de tira.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subseccion">
+                <h3>Historial y filtros de pagos</h3>
+                <div class="paso"><span class="num">1</span><p>En el módulo <strong>Pagos</strong>, se muestra el historial de todos los pagos del ciclo activo.</p></div>
+                <div class="paso"><span class="num">2</span><p>Usar los <strong>filtros</strong> para buscar por alumno, rango de fechas o concepto.</p></div>
+                <div class="paso"><span class="num">3</span><p>Los filtros aplicados se recuerdan al navegar a otras secciones y volver. Para limpiarlos, usar el botón <strong>Limpiar filtros</strong>.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Reporte de caja (PDF)</h3>
+                <div class="paso"><span class="num">1</span><p>Aplicar los filtros deseados (rango de fechas, concepto, etc.).</p></div>
+                <div class="paso"><span class="num">2</span><p>Hacer clic en <strong>Exportar PDF</strong>. Se genera un reporte con el detalle de todos los pagos filtrados más el total recaudado.</p></div>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             8. VESTIMENTA
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="vestimenta">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#fce7f3; color:#be185d;"><i class="bi bi-bag-fill"></i></div>
+                <div>
+                    <h2>8. Vestimenta</h2>
+                    <small>Inventario, ventas y reportes de artículos escolares</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Ver inventario</h3>
+                <p style="font-size:.92rem;">La pantalla principal de <strong>Vestimenta</strong> muestra el catálogo de productos con su descripción, talle, precio de venta y stock disponible (separado por Depósito y Administración).</p>
+            </div>
+
+            <div class="subseccion">
+                <h3>Agregar un producto al inventario</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en <strong>Nuevo Producto</strong>.</p></div>
+                <div class="paso"><span class="num">2</span><p>Completar: descripción del artículo, talle, precio de venta, stock inicial en depósito y en administración.</p></div>
+                <div class="paso"><span class="num">3</span><p>Guardar. El producto queda disponible para registrar ventas.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Registrar una venta</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en <strong>Nueva Venta</strong>.</p></div>
+                <div class="paso"><span class="num">2</span><p>En la tabla de artículos, seleccionar el <strong>producto</strong> del listado desplegable. El precio se completa automáticamente desde la base de datos.</p></div>
+                <div class="paso"><span class="num">3</span><p>Seleccionar el <strong>origen del stock</strong>: Depósito o Administración.</p></div>
+                <div class="paso"><span class="num">4</span><p>Indicar la <strong>cantidad</strong>. El subtotal se calcula automáticamente.</p></div>
+                <div class="paso"><span class="num">5</span><p>Para agregar más artículos a la misma venta, usar el botón <strong>Agregar otro ítem</strong>.</p></div>
+                <div class="paso"><span class="num">6</span><p>Confirmar con <strong>Confirmar Venta</strong>. El stock se descuenta automáticamente.</p></div>
+                <div class="nota">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    El sistema valida que haya stock suficiente antes de confirmar la venta. Si la cantidad supera el stock disponible, se muestra un error.
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Ver historial de ventas</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en <strong>Ver Ventas</strong> desde el módulo de vestimenta.</p></div>
+                <div class="paso"><span class="num">2</span><p>Usar el filtro de fechas para acotar el período.</p></div>
+                <div class="paso"><span class="num">3</span><p>Hacer clic en el ícono de ojo de una venta para ver su detalle completo.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Exportar e imprimir reportes</h3>
+                <table class="table tabla-campos table-bordered">
+                    <thead><tr><th>Reporte</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>PDF Inventario</strong></td><td>Lista completa de productos con stocks actuales.</td></tr>
+                        <tr><td><strong>PDF Lista de Precios</strong></td><td>Catálogo de productos con precios de venta, para exhibir en la administración.</td></tr>
+                        <tr><td><strong>PDF Ventas</strong></td><td>Detalle de ventas del período seleccionado.</td></tr>
+                        <tr><td><strong>CSV Ventas</strong></td><td>Exportación de ventas en formato planilla de cálculo.</td></tr>
+                        <tr><td><strong>Balance</strong></td><td>Resumen de ingresos por vestimenta del período.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subseccion">
+                <h3>Eliminar una venta (solo Administrador)</h3>
+                <p style="font-size:.92rem;">En el historial de ventas, los administradores pueden eliminar una venta haciendo clic en el ícono de papelera. El sistema restaura automáticamente el stock descontado al momento de la venta.</p>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             9. CICLOS LECTIVOS
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="ciclos">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#ede9fe; color:#7c3aed;"><i class="bi bi-calendar2-week-fill"></i></div>
+                <div>
+                    <h2>9. Ciclos Lectivos</h2>
+                    <small>Gestión del año lectivo activo</small>
+                </div>
+            </div>
+
+            <p>El ciclo lectivo determina el contexto de todas las inscripciones y pagos. Solo puede haber <strong>un ciclo activo</strong> a la vez.</p>
+
+            <div class="subseccion">
+                <h3>Crear un nuevo ciclo lectivo</h3>
+                <div class="paso"><span class="num">1</span><p>Ir a <strong>Ciclos Lectivos</strong> (acceso desde el menú de administración).</p></div>
+                <div class="paso"><span class="num">2</span><p>Hacer clic en <strong>Nuevo Ciclo</strong> e ingresar el año (ej: 2026).</p></div>
+                <div class="paso"><span class="num">3</span><p>Guardar.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Activar un ciclo lectivo</h3>
+                <div class="paso"><span class="num">1</span><p>En el listado de ciclos, hacer clic en <strong>Activar</strong> junto al ciclo que se desea poner como activo.</p></div>
+                <div class="paso"><span class="num">2</span><p>El ciclo anterior queda desactivado automáticamente.</p></div>
+                <div class="nota nota-peligro">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <strong>Atención:</strong> Cambiar el ciclo activo afecta qué inscripciones y estadísticas se muestran en todo el sistema. Realizar este cambio al inicio de cada año lectivo.
+                </div>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             10. USUARIOS
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="usuarios">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#fee2e2; color:#991b1b;"><i class="bi bi-person-gear"></i></div>
+                <div>
+                    <h2>10. Usuarios del Sistema</h2>
+                    <small>Gestión de cuentas de acceso — solo Administrador</small>
+                </div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Crear un usuario</h3>
+                <div class="paso"><span class="num">1</span><p>Acceder a <strong>Usuarios</strong> desde el menú del perfil (solo visible para Administradores).</p></div>
+                <div class="paso"><span class="num">2</span><p>Hacer clic en <strong>Nuevo Usuario</strong>.</p></div>
+                <div class="paso"><span class="num">3</span><p>Completar: nombre completo, nombre de usuario, contraseña y rol (Administrador u Operador).</p></div>
+                <div class="paso"><span class="num">4</span><p>Guardar. El nuevo usuario puede ingresar de inmediato.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Cambiar contraseña propia</h3>
+                <div class="paso"><span class="num">1</span><p>Hacer clic en el nombre de usuario en la barra superior y seleccionar <strong>Mi Perfil</strong>.</p></div>
+                <div class="paso"><span class="num">2</span><p>Ingresar la contraseña actual y la nueva contraseña (dos veces para confirmar).</p></div>
+                <div class="paso"><span class="num">3</span><p>Guardar cambios.</p></div>
+            </div>
+
+            <div class="subseccion">
+                <h3>Log de actividad</h3>
+                <p style="font-size:.92rem;">El sistema registra automáticamente las acciones importantes (altas, modificaciones, eliminaciones, accesos). El administrador puede consultarlos desde <strong>Usuarios → Ver Logs</strong>. Cada entrada incluye: fecha, usuario, acción realizada y dirección IP.</p>
+            </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             11. PREGUNTAS FRECUENTES
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+        <div class="seccion" id="faq">
+            <div class="seccion-titulo">
+                <div class="icono" style="background:#e0f2fe; color:#0369a1;"><i class="bi bi-patch-question-fill"></i></div>
+                <div>
+                    <h2>11. Preguntas Frecuentes</h2>
+                    <small>Soluciones a problemas comunes</small>
+                </div>
+            </div>
+
+            <div class="accordion" id="faqAccordion">
+
+                <div class="accordion-item border mb-2 rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            No puedo ingresar al sistema, me dice que mi cuenta está bloqueada.
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body" style="font-size:.92rem;">
+                            El bloqueo ocurre tras 5 intentos fallidos y dura 15 minutos. Esperar ese tiempo y volver a intentar. Si el problema persiste, contactar al administrador del sistema para que verifique las credenciales.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border mb-2 rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            Al registrar un pago aparece "No hay ciclo lectivo activo".
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body" style="font-size:.92rem;">
+                            El sistema requiere que haya un ciclo lectivo activo para poder registrar pagos e inscripciones. El administrador debe ir a <strong>Ciclos Lectivos</strong> y activar el ciclo correspondiente al año actual.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border mb-2 rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Intenté eliminar un tutor y dice que tiene alumnos asociados.
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body" style="font-size:.92rem;">
+                            Para eliminar un tutor, primero se deben desasignar todos los alumnos que tiene a cargo. Ir a la edición de cada alumno y usar la opción <em>"Quitar tutor asociado"</em>. Una vez que ningún alumno lo referencie, el tutor podrá eliminarse.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border mb-2 rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            La venta de vestimenta da error de stock insuficiente pero hay unidades físicas disponibles.
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body" style="font-size:.92rem;">
+                            Verificar que se esté eligiendo el <strong>origen correcto del stock</strong>: Depósito o Administración. El stock se lleva por separado para cada ubicación. Si el stock del sistema no coincide con el físico, el administrador puede editar el producto y corregir los valores de stock.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border mb-2 rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            ¿Cómo busco alumnos de un curso específico?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body" style="font-size:.92rem;">
+                            Ir a <strong>Cursos</strong>, buscar el curso deseado y hacer clic en <strong>Ver Curso</strong>. Dentro de la vista del curso, hay un enlace que lleva al listado de alumnos filtrado por ese curso. Desde ahí también se puede exportar el listado en PDF o CSV.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border mb-2 rounded">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                            ¿Cómo imprimo el recibo en impresora matricial?
+                        </button>
+                    </h2>
+                    <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body" style="font-size:.92rem;">
+                            Desde la pantalla de confirmación del pago, usar el botón <strong>Imprimir Matricial</strong>. Se genera un PDF optimizado para impresoras Epson LX-350 con fuente Courier y formato de tira continua. Configurar la impresora para ignorar márgenes y escalar al 100%.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pie del manual -->
+        <div class="text-center text-muted py-4" style="font-size:.8rem;">
+            Sistema de Gestión Escolar — Escuela de Comercio N°1 "Gral. Manuel Belgrano" &nbsp;·&nbsp; Manual v2.0 — 2026
+        </div>
+
+    </div><!-- /col contenido -->
+</div><!-- /row -->
+</div><!-- /container -->
+
+<!-- ════════════ BOTÓN EXPORTAR PDF ════════════ -->
+<button id="btn-exportar" class="btn btn-primary text-white" onclick="exportarPDF()">
+    <i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar PDF
+</button>
+
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function exportarPDF() {
+        const btn = document.getElementById('btn-exportar');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
+
+        // Clonar el contenido para el PDF (sin índice lateral ni botón)
+        const contenido = document.getElementById('manual-content').cloneNode(true);
+
+        // Agregar portada al PDF
+        const portadaEl = document.querySelector('.portada');
+        const portadaClone = portadaEl.cloneNode(true);
+        portadaClone.style.marginBottom = '32px';
+        portadaClone.style.borderRadius = '0';
+        contenido.insertBefore(portadaClone, contenido.firstChild);
+
+        const opciones = {
+            margin:     [12, 12, 12, 12],
+            filename:   'Manual_Sistema_Comercio.pdf',
+            image:      { type: 'jpeg', quality: 0.97 },
+            html2canvas: {
+                scale:   2,
+                useCORS: true,
+                logging: false
+            },
+            jsPDF: {
+                unit:        'mm',
+                format:      'a4',
+                orientation: 'portrait'
+            },
+            pagebreak: {
+                mode: ['css', 'legacy'],
+                avoid: ['.subseccion', '.paso', '.nota', '.accordion-item', 'tr']
+            }
+        };
+
+        html2pdf()
+            .set(opciones)
+            .from(contenido)
+            .save()
+            .then(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar PDF';
+            });
+    }
+</script>
+</body>
+</html>
