@@ -150,12 +150,57 @@
 
         /* ── Impresión / PDF ─────────────────────────────── */
         @media print {
-            body { background: #fff !important; }
-            #btn-exportar, .indice-nav, .portada-acciones { display: none !important; }
-            .seccion { box-shadow: none !important; border: 1px solid #dee2e6; page-break-inside: avoid; }
-            .subseccion { page-break-inside: avoid; }
-            .paso { page-break-inside: avoid; }
-            @page { size: A4; margin: 2cm; }
+            @page { size: A4; margin: 1.8cm 1.5cm; }
+
+            body { background: #fff !important; font-size: 11pt; }
+
+            /* Ocultar elementos de pantalla */
+            #btn-exportar,
+            .col-lg-3,
+            .indice-nav { display: none !important; }
+
+            /* Columna de contenido ocupa todo el ancho */
+            .col-lg-9 {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: 0 0 100% !important;
+            }
+            .container-xl { padding: 0 !important; }
+            .row { margin: 0 !important; }
+
+            /* Portada */
+            .portada {
+                background: #1e3c72 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                border-radius: 0 !important;
+                margin-bottom: 24pt !important;
+            }
+
+            /* Secciones */
+            .seccion {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+                border-radius: 6pt !important;
+                margin-bottom: 18pt !important;
+                padding: 18pt 20pt !important;
+                break-inside: avoid;
+            }
+            .subseccion  { break-inside: avoid; }
+            .paso        { break-inside: avoid; }
+            .nota        { break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .tabla-campos{ break-inside: avoid; font-size: 9.5pt; }
+            .accordion-item { break-inside: avoid; }
+
+            /* Mostrar contenido de acordeón en impresión */
+            .accordion-collapse { display: block !important; }
+            .accordion-button::after { display: none; }
+            .accordion-button { font-size: 10pt; padding: 6pt 8pt; }
+
+            /* Colores de insignias y títulos */
+            .seccion-titulo h2 { color: #1e3c72 !important; }
+            .icono { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .rol-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -798,51 +843,9 @@
 </button>
 
 <script src="assets/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
     function exportarPDF() {
-        const btn = document.getElementById('btn-exportar');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
-
-        // Clonar el contenido para el PDF (sin índice lateral ni botón)
-        const contenido = document.getElementById('manual-content').cloneNode(true);
-
-        // Agregar portada al PDF
-        const portadaEl = document.querySelector('.portada');
-        const portadaClone = portadaEl.cloneNode(true);
-        portadaClone.style.marginBottom = '32px';
-        portadaClone.style.borderRadius = '0';
-        contenido.insertBefore(portadaClone, contenido.firstChild);
-
-        const opciones = {
-            margin:     [12, 12, 12, 12],
-            filename:   'Manual_Sistema_Comercio.pdf',
-            image:      { type: 'jpeg', quality: 0.97 },
-            html2canvas: {
-                scale:   2,
-                useCORS: true,
-                logging: false
-            },
-            jsPDF: {
-                unit:        'mm',
-                format:      'a4',
-                orientation: 'portrait'
-            },
-            pagebreak: {
-                mode: ['css', 'legacy'],
-                avoid: ['.subseccion', '.paso', '.nota', '.accordion-item', 'tr']
-            }
-        };
-
-        html2pdf()
-            .set(opciones)
-            .from(contenido)
-            .save()
-            .then(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar PDF';
-            });
+        window.print();
     }
 </script>
 </body>
