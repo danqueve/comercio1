@@ -11,11 +11,11 @@ Sistema web de administración escolar desarrollado en PHP + MySQL, diseñado pa
 | Servidor | Apache 2.4 (WAMP) |
 | Backend | PHP 8.3 |
 | Base de datos | MySQL (PDO) |
-| Frontend | Bootstrap 5 + Bootstrap Icons |
+| Frontend | Bootstrap 5 + Bootstrap Icons + tema propio (`assets/css/app.css`) |
 | Gráficos | Chart.js |
 | PDF | FPDF |
 
-Todos los assets de frontend (Bootstrap, Chart.js) se sirven de forma **local** desde `assets/` — sin dependencias de CDN externas.
+Todos los assets de frontend (Bootstrap, Bootstrap Icons, Chart.js y las fuentes) se sirven de forma **local** desde `assets/` — sin dependencias de CDN externas.
 
 ---
 
@@ -32,6 +32,26 @@ Todos los assets de frontend (Bootstrap, Chart.js) se sirven de forma **local** 
 | Vestimenta | `/modules/vestimenta/` | Inventario de productos, registro de ventas, balance |
 | Ciclos Lectivos | `/modules/ciclos/` | Gestión del ciclo lectivo activo |
 | Usuarios | `/modules/usuarios/` | Gestión de usuarios del sistema y log de actividad |
+
+---
+
+## Diseño de la interfaz
+
+La interfaz usa un design system propio, «Comercio N°1», construido sobre Bootstrap 5.1:
+
+| Archivo | Qué contiene |
+|---------|--------------|
+| `assets/css/tokens.css` | Colores, tipografías, espacios, radios y sombras como variables CSS (`--brand`, `--surface`, `--ink`…). Generado desde el `tokens.json` del design system: no editar a mano. |
+| `assets/css/app.css` | Tema: mapea Bootstrap a los tokens (botones, tablas, badges, alertas, formularios) y define el layout (barra lateral, panel, login). |
+| `assets/fonts/` | Public Sans (interfaz) y Source Serif 4 (títulos), variables, licencia OFL. |
+| `assets/icons/` | Bootstrap Icons 1.11.3 local. |
+
+Reglas rápidas:
+
+- Paleta institucional: azul Belgrano (`--brand`), celeste de la bandera (`--celeste`) y Sol de Mayo (`--sol`) como acento.
+- Los estados (Regular, pagado, sin tutor, error) siempre llevan palabra o ícono, nunca solo color.
+- Las páginas nuevas incluyen `includes/header.php` y `includes/footer.php` y envuelven su contenido en `<div class="container">`; el menú lateral marca solo la sección activa.
+- Clases propias disponibles: `page-head`, `page-title`, `stat-card`, `quick-link`, `section-title`, `empty-state`, `total-card`.
 
 ---
 
@@ -76,7 +96,7 @@ Todos los assets de frontend (Bootstrap, Chart.js) se sirven de forma **local** 
 
 ```
 comercio/
-├── assets/               # CSS, JS y fuentes locales (Bootstrap, Chart.js)
+├── assets/               # CSS (Bootstrap + tokens + tema), JS, fuentes e íconos locales
 ├── config/               # Conexión DB, autenticación, CSRF, logger
 ├── fpdf/                 # Librería FPDF para generación de PDF
 ├── includes/             # Header y footer maestros (layout)

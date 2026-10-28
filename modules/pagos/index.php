@@ -210,52 +210,34 @@ include $base_path . 'includes/header.php';
             </div>
         </div>
 
-        <!-- Tarjetas de Totales Verticales y Premium -->
+        <!-- Totales del período -->
         <div class="col-xl-5">
             <div class="row g-3">
-                <!-- Card Cuotas -->
-                <div class="col-md-6 col-xl-12">
-                    <div class="card border-0 rounded-4 bg-success bg-gradient text-white shadow-sm overflow-hidden">
-                        <div class="card-body d-flex align-items-center p-3">
-                            <div class="flex-shrink-0 bg-white bg-opacity-25 rounded-3 p-3 me-3">
-                                <i class="bi bi-person-check fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-white-50 small mb-0 fw-semibold text-uppercase">Cobro Cuotas</h6>
-                                <h4 class="fw-bold mb-0">$ <?= number_format($total_recaudado, 2, ',', '.') ?></h4>
-                            </div>
+                <div class="col-md-6">
+                    <div class="card stat-card">
+                        <div class="stat-top">
+                            <span class="stat-label">Cobro de cuotas</span>
+                            <span class="stat-icon is-success"><i class="bi bi-person-check"></i></span>
                         </div>
+                        <div class="stat-value">$ <?= number_format($total_recaudado, 2, ',', '.') ?></div>
                     </div>
                 </div>
-                <!-- Card Vestimenta -->
-                <div class="col-md-6 col-xl-12">
-                    <div class="card border-0 rounded-4 bg-info bg-gradient text-white shadow-sm overflow-hidden">
-                        <div class="card-body d-flex align-items-center p-3">
-                            <div class="flex-shrink-0 bg-white bg-opacity-25 rounded-3 p-3 me-3">
-                                <i class="bi bi-bag-check fs-3"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="text-white-50 small mb-0 fw-semibold text-uppercase">Ventas Vestimenta</h6>
-                                <h4 class="fw-bold mb-0">$ <?= number_format($total_vestimenta, 2, ',', '.') ?></h4>
-                            </div>
+                <div class="col-md-6">
+                    <div class="card stat-card">
+                        <div class="stat-top">
+                            <span class="stat-label">Ventas vestimenta</span>
                             <a href="../vestimenta/imprimir_balance.php?desde=<?= $fecha_inicio ?>&hasta=<?= $fecha_fin ?>"
-                                target="_blank"
-                                class="btn btn-sm btn-light bg-opacity-25 border-0 text-white rounded-pill ms-2"
-                                title="Imprimir Balance">
-                                <i class="bi bi-printer-fill"></i>
+                                target="_blank" class="stat-icon text-decoration-none" title="Imprimir balance de vestimenta">
+                                <i class="bi bi-printer"></i>
                             </a>
                         </div>
+                        <div class="stat-value">$ <?= number_format($total_vestimenta, 2, ',', '.') ?></div>
                     </div>
                 </div>
-                <!-- Total Global -->
                 <div class="col-12">
-                    <div class="card border-0 rounded-4 bg-white shadow-sm border-start border-primary border-5">
-                        <div class="card-body d-flex justify-content-between align-items-center py-2 px-4 text-primary">
-                            <div class="fw-bold text-uppercase small">Total General Neto</div>
-                            <div class="h4 fw-bold mb-0">$
-                                <?= number_format($total_recaudado + $total_vestimenta, 2, ',', '.') ?>
-                            </div>
-                        </div>
+                    <div class="card total-card">
+                        <span class="stat-label">Total general neto</span>
+                        <span class="total-value">$ <?= number_format($total_recaudado + $total_vestimenta, 2, ',', '.') ?></span>
                     </div>
                 </div>
             </div>
@@ -396,36 +378,6 @@ include $base_path . 'includes/header.php';
     </div>
 </div>
 
-<style>
-    /* Estilos adicionales para mejorar la visual */
-    .pagination .page-item .page-link {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6c757d;
-    }
 
-    .pagination .page-item.active .page-link {
-        background-color: var(--bs-primary);
-        color: white;
-    }
-
-    .btn-white {
-        background-color: white;
-        border: 1px solid #f8f9fa;
-    }
-
-    .btn-white:hover {
-        background-color: #f8f9fa;
-    }
-
-    .card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    /* .card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1)!important; } */
-</style>
 
 <?php include $base_path . 'includes/footer.php'; ?>

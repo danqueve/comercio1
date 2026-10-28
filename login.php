@@ -100,108 +100,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso - Escuela Comercio N° 1</title>
-    <!-- Bootstrap 5 (local) -->
+    <meta name="theme-color" content="#142a45">
+    <title>Acceso · Escuela de Comercio N°1</title>
     <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons (CDN) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <style>
-        body {
-            background-color: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
-        .card-login {
-            width: 100%;
-            max-width: 400px;
-            border: none;
-            border-radius: 15px;
-            overflow: hidden;
-            background: white;
-        }
-        .login-header {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-            color: white;
-            padding: 2rem 1rem;
-            text-align: center;
-        }
-        .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-        }
-        .input-group-text {
-            background-color: #f8f9fa;
-            border-right: none;
-        }
-        .form-control {
-            border-left: none;
-        }
-    </style>
+    <link href="assets/icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="assets/css/tokens.css" rel="stylesheet">
+    <link href="assets/css/app.css" rel="stylesheet">
 </head>
 <body>
 
-    <div class="container p-3">
-        <div class="card shadow-lg card-login mx-auto">
-            
-            <!-- Encabezado Azul -->
-            <div class="login-header">
-                <i class="bi bi-mortarboard-fill display-4 mb-2"></i>
-                <h4 class="fw-bold mb-0">Sistema Escolar</h4>
-                <small class="opacity-75">Escuela de Comercio N° 1</small>
-            </div>
+    <div class="login-page">
 
-            <div class="card-body p-4 pt-5">
-                
-                <h5 class="text-center text-secondary mb-4">Iniciar Sesión</h5>
+        <!-- Panel institucional -->
+        <aside class="login-aside">
+            <div>
+                <a class="app-brand" href="login.php">
+                    <span class="app-brand-mark"><i class="bi bi-mortarboard-fill" aria-hidden="true"></i></span>
+                    <span>
+                        <span class="app-brand-name">Comercio N°1</span>
+                        <span class="app-brand-sub">Sistema de Gestión Escolar</span>
+                    </span>
+                </a>
+                <p class="login-school">Escuela de Comercio N°1<br>«Gral. Manuel Belgrano»</p>
+                <p class="login-tagline">Alumnos, cursos, pagos y vestimenta del ciclo lectivo en un solo lugar.</p>
+            </div>
+            <div>
+                <div class="login-flag mb-3" aria-hidden="true"><span></span><span></span><span></span></div>
+                <div class="login-aside-foot">&copy; <?= date('Y') ?> Escuela de Comercio N°1</div>
+            </div>
+        </aside>
+
+        <!-- Formulario -->
+        <main class="login-main">
+            <div class="login-card">
+                <h1>Iniciar sesión</h1>
+                <p class="text-muted mb-4">Ingresá con tu usuario del sistema.</p>
 
                 <?php if(!empty($error)): ?>
-                    <div class="alert alert-danger d-flex align-items-center small" role="alert">
-                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
+                        <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
                         <div><?= $error ?></div>
                     </div>
                 <?php endif; ?>
 
                 <form method="POST" action="">
-                    
+
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Usuario</label>
+                        <label class="form-label" for="usuario">Usuario</label>
                         <div class="input-group">
-                            <span class="input-group-text text-muted"><i class="bi bi-person-fill"></i></span>
-                            <input type="text" class="form-control form-control-lg fs-6" id="usuario" name="usuario" required autofocus placeholder="Ingrese su usuario">
+                            <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
+                            <input type="text" class="form-control form-control-lg" id="usuario" name="usuario" required autofocus autocomplete="username" placeholder="Tu usuario">
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-muted">Contraseña</label>
+                        <label class="form-label" for="password">Contraseña</label>
                         <div class="input-group">
-                            <span class="input-group-text text-muted"><i class="bi bi-lock-fill"></i></span>
-                            <input type="password" class="form-control form-control-lg fs-6" id="password" name="password" required placeholder="Ingrese su clave">
+                            <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" required autocomplete="current-password" placeholder="Tu contraseña">
                         </div>
                     </div>
 
-                    <div class="d-grid gap-2 mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg shadow-sm fw-bold">
-                            Ingresar al Sistema
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Ingresar <i class="bi bi-arrow-right" aria-hidden="true"></i>
                         </button>
                     </div>
 
                 </form>
+
+                <p class="small text-muted mt-4 mb-0">
+                    <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>
+                    Por seguridad, el acceso se bloquea 15 minutos tras 5 intentos fallidos.
+                </p>
             </div>
-            
-            <div class="card-footer bg-light text-center py-3 border-top-0">
-                <small class="text-muted" style="font-size: 0.8rem;">
-                    &copy; <?= date('Y') ?> Gestión Escolar &bull; Gral. M. Belgrano
-                </small>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script src="assets/js/bootstrap.bundle.min.js"></script>
