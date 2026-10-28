@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
         <main class="login-main">
             <div class="login-card">
                 <h1>Iniciar sesión</h1>
-                <p class="text-muted mb-4">Ingresá con tu usuario del sistema.</p>
+                <p class="text-muted mb-4">Ingrese con su usuario del sistema.</p>
 
                 <?php if(!empty($error)): ?>
                     <div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
                         <label class="form-label" for="usuario">Usuario</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person" aria-hidden="true"></i></span>
-                            <input type="text" class="form-control form-control-lg" id="usuario" name="usuario" required autofocus autocomplete="username" placeholder="Tu usuario">
+                            <input type="text" class="form-control form-control-lg" id="usuario" name="usuario" required autofocus autocomplete="username" placeholder="Su usuario">
                         </div>
                     </div>
 
@@ -161,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
                         <label class="form-label" for="password">Contraseña</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock" aria-hidden="true"></i></span>
-                            <input type="password" class="form-control form-control-lg" id="password" name="password" required autocomplete="current-password" placeholder="Tu contraseña">
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" required autocomplete="current-password" placeholder="Su contraseña">
                         </div>
                     </div>
 

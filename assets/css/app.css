@@ -26,6 +26,35 @@
   --bs-gradient: none;
 }
 
+/* Tema oscuro: listo pero no activado (header.php fija data-theme="light") */
+[data-theme="dark"] {
+  --bs-primary: #8cbbe6;   --bs-primary-rgb: 140, 187, 230;
+  --bs-secondary: #a3adbb; --bs-secondary-rgb: 163, 173, 187;
+  --bs-success: #6cc79a;   --bs-success-rgb: 108, 199, 154;
+  --bs-info: #8cbbe6;      --bs-info-rgb: 140, 187, 230;
+  --bs-warning: #f2c25c;   --bs-warning-rgb: 242, 194, 92;
+  --bs-danger: #f08a76;    --bs-danger-rgb: 240, 138, 118;
+  --bs-light: #0c1118;     --bs-light-rgb: 12, 17, 24;
+  --bs-dark: #e8ecf2;      --bs-dark-rgb: 232, 236, 242;
+  --bs-white-rgb: 24, 33, 48;
+  --bs-body-color-rgb: 232, 236, 242;
+  --bs-body-bg-rgb: 16, 22, 31;
+  color-scheme: dark;
+}
+[data-theme="dark"] .btn-success, [data-theme="dark"] .btn-danger, [data-theme="dark"] .btn-warning,
+[data-theme="dark"] .btn-info, [data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .badge.bg-warning:not(.bg-opacity-10):not(.bg-opacity-25) { color: var(--on-brand) !important; }
+[data-theme="dark"] .btn-success:hover, [data-theme="dark"] .btn-danger:hover, [data-theme="dark"] .btn-warning:hover,
+[data-theme="dark"] .btn-info:hover, [data-theme="dark"] .btn-primary:hover { filter: brightness(1.1); color: var(--on-brand); }
+[data-theme="dark"] .btn-primary:hover { background-color: var(--brand); border-color: var(--brand); }
+[data-theme="dark"] .bg-success:not(.bg-opacity-10), [data-theme="dark"] .bg-danger:not(.bg-opacity-10),
+[data-theme="dark"] .bg-primary:not(.bg-opacity-10), [data-theme="dark"] .bg-info:not(.bg-opacity-10) { color: var(--on-brand) !important; }
+[data-theme="dark"] .text-white-50 { color: rgba(12, 26, 43, 0.75) !important; }
+[data-theme="dark"] .app-sidebar .text-white-50 { color: rgba(255, 255, 255, 0.72) !important; }
+[data-theme="dark"] .btn-close { filter: invert(1); }
+[data-theme="dark"] .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a3adbb' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); }
+[data-theme="dark"] .table { --bs-table-hover-bg: rgba(116, 172, 223, 0.10); --bs-table-striped-bg: rgba(255, 255, 255, 0.03); }
+
 /* ---------- 2. Base ---------- */
 html { -webkit-text-size-adjust: 100%; }
 body {
