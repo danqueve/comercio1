@@ -1,0 +1,88 @@
+/* Comercio N°1 — generated from tokens.json */
+
+@font-face { font-family: "Public Sans Variable"; src: url("../fonts/public-sans-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Source Serif 4 Variable"; src: url("../fonts/source-serif-4-latin-wght-normal.woff2") format("woff2"); font-weight: 200 900; font-style: normal; font-display: swap; }
+
+:root, [data-theme="light"] {
+  --surface-page: #f4f2ed;
+  --surface: #ffffff;
+  --surface-sunken: #ebe8e1;
+  --line: #d9d4c9;
+  --line-control: #8a8375;
+  --ink: #18212f;
+  --ink-muted: #545d6b;
+  --brand: #1d3a5c;
+  --brand-strong: #142a45;
+  --on-brand: #ffffff;
+  --celeste: #74acdf;
+  --celeste-soft: #e4f0fa;
+  --on-celeste: #12263d;
+  --sol: #f6b40e;
+  --sol-soft: #fdf1d2;
+  --success: #1e6b45;
+  --success-soft: #e2f1e8;
+  --danger: #a8321f;
+  --danger-soft: #f8e4df;
+  --warning: #8a5d00;
+  --warning-soft: #fbefd3;
+  --info: #1f5d8c;
+  --info-soft: var(--celeste-soft);
+  --focus: #2f6fae;
+  --shadow-card: 0 1px 2px rgba(24, 33, 47, 0.06);
+  --shadow-raised: 0 10px 30px rgba(24, 33, 47, 0.12);
+}
+[data-theme="dark"] {
+  --surface-page: #10161f;
+  --surface: #182130;
+  --surface-sunken: #0c1118;
+  --line: #2a3546;
+  --line-control: #5f6d82;
+  --ink: #e8ecf2;
+  --ink-muted: #a3adbb;
+  --brand: #8cbbe6;
+  --brand-strong: #0b1420;
+  --on-brand: #0c1a2b;
+  --celeste: #74acdf;
+  --celeste-soft: #16304a;
+  --on-celeste: #12263d;
+  --sol: #f6b40e;
+  --sol-soft: #33270b;
+  --success: #6cc79a;
+  --success-soft: #13301f;
+  --danger: #f08a76;
+  --danger-soft: #3a1a14;
+  --warning: #f2c25c;
+  --warning-soft: #33270b;
+  --info: #8cbbe6;
+  --info-soft: var(--celeste-soft);
+  --focus: #8cbbe6;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-raised: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --sidebar-width: 248px;
+  --content-max: 1240px;
+  --control-height: 40px;
+  --font-sans: "Public Sans Variable", "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+.t-display { font-family: var(--font-serif); font-size: 34px; line-height: 40px; font-weight: 600; letter-spacing: -0.01em; }
+.t-title { font-family: var(--font-serif); font-size: 26px; line-height: 32px; font-weight: 600; }
+.t-heading { font-family: var(--font-sans); font-size: 18px; line-height: 24px; font-weight: 600; }
+.t-body { font-family: var(--font-sans); font-size: 15px; line-height: 22px; font-weight: 400; }
+.t-body-strong { font-family: var(--font-sans); font-size: 15px; line-height: 22px; font-weight: 600; }
+.t-small { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 400; }
+.t-label { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.06em; }
+.t-figure { font-family: var(--font-sans); font-size: 30px; line-height: 34px; font-weight: 650; letter-spacing: -0.01em; }
+.t-nav { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 500; }

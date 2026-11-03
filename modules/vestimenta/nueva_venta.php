@@ -1,8 +1,9 @@
 ﻿<?php
 require_once '../../config/auth.php';
 require_once '../../config/conexion.php';
+require_once '../../config/csrf.php';
 
-require_login();
+require_role(['Administrador', 'Supervisor']);
 
 // Obtener todos los productos para el select
 $stmt = $pdo->query("SELECT id, descripcion, talle, precio_venta, stock_deposito, stock_administracion FROM vestimenta_productos ORDER BY descripcion ASC");

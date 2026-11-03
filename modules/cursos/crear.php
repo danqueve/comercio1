@@ -6,6 +6,7 @@ require_once '../../config/csrf.php';
 require_role(['Administrador', 'Supervisor']);
 
 $mensaje = '';
+$tipo_alerta = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
@@ -14,7 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $turno    = $_POST['turno'];           // Mañana, Tarde, Noche
 
     if (empty($anio) || empty($division) || empty($turno)) {
-        $mensaje = '<div class="alert alert-danger shadow-sm border-0"><i class="bi bi-x-circle-fill me-2"></i> Todos los campos son obligatorios.</div>';
+        $mensaje = 'Todos los campos son obligatorios.';
+        $tipo_alerta = 'danger';
     } else {
         try {
             // Verificar si ya existe ese curso exacto
@@ -27,22 +29,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             if ($stmt->rowCount() > 0) {
-                $mensaje = '<div class="alert alert-warning shadow-sm border-0"><i class="bi bi-exclamation-triangle-fill me-2"></i> Ese curso ya existe en el sistema.</div>';
+                $mensaje = 'Ese curso ya existe en el sistema.';
+                $tipo_alerta = 'warning';
             } else {
                 // Crear el curso
                 $sql_insert = "INSERT INTO cursos (anio_curso, division, turno) VALUES (:anio, :div, :turno)";
                 $stmt = $pdo->prepare($sql_insert);
                 $stmt->execute([
                     'anio' => $anio,
-                    'div'  => strtoupper($division), // Forzar mayúscula en la división
+                    'div'  => strtoupper($division),
                     'turno'=> $turno
                 ]);
 
-                $mensaje = '<div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> ¡Curso <b>'.$anio.' "'.$division.'"</b> creado con éxito!</div>';
+                $mensaje = '¡Curso ' . $anio . ' "' . $division . '" creado con éxito!';
+                $tipo_alerta = 'success';
             }
         } catch (PDOException $e) {
             log_error('CREAR_CURSO', $e->getMessage());
-            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error interno. Por favor, intente nuevamente.</div>';
+            $mensaje = 'Error interno. Por favor, intente nuevamente.';
+            $tipo_alerta = 'danger';
         }
     }
 }
@@ -73,8 +78,9 @@ include $base_path . 'includes/header.php';
                 <div class="card-body p-4">
                     
                     <?php if ($mensaje): ?>
-                        <div class="mb-4">
-                            <?= $mensaje ?>
+                        <div class="alert alert-<?= $tipo_alerta ?> shadow-sm border-0 mb-4">
+                            <i class="bi bi-<?= $tipo_alerta === 'success' ? 'check-circle-fill' : ($tipo_alerta === 'warning' ? 'exclamation-triangle-fill' : 'x-circle-fill') ?> me-2"></i>
+                            <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
                         </div>
                     <?php endif; ?>
 

@@ -62,225 +62,7 @@ if ($cache_valid) {
     $_SESSION[$cache_key . '_time'] = time();
 }
 
-// --- INCLUIR CABECERA MAESTRA ---
-// Definimos la ruta base como './' porque estamos en la raíz
-$base_path = './';
-include 'includes/header.php';
-?>
-
-<div class="container">
-
-    <!-- Encabezado de Bienvenida y Fecha -->
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
-            <h2 class="fw-bold text-dark">Panel de Control</h2>
-            <p class="text-muted mb-0">Resumen del Ciclo Lectivo <strong><?= $anio_actual ?></strong></p>
-        </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">
-                <i class="bi bi-calendar-event"></i> Hoy: <?= date('d/m/Y') ?>
-            </span>
-        </div>
-    </div>
-
-    <!-- Tarjetas de Estadísticas (Responsive mejorado) -->
-    <div class="row g-4 mb-5">
-        <!-- Tarjeta 1: Total Alumnos -->
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm bg-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded-3 text-primary">
-                            <i class="bi bi-people-fill fs-4"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted text-uppercase small mb-1">Total Histórico</h6>
-                            <h3 class="fw-bold mb-0"><?= $total_alumnos ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tarjeta 2: Inscritos este año -->
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm bg-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded-3 text-success">
-                            <i class="bi bi-person-check-fill fs-4"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted text-uppercase small mb-1">Inscritos <?= $anio_actual ?></h6>
-                            <h3 class="fw-bold mb-0"><?= $inscritos_ciclo ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tarjeta 3: Cursos Activos -->
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm bg-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 bg-info bg-opacity-10 p-3 rounded-3 text-info">
-                            <i class="bi bi-grid-fill fs-4"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted text-uppercase small mb-1">Cursos Activos</h6>
-                            <h3 class="fw-bold mb-0"><?= $total_cursos ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tarjeta 4: Accesos (Placeholder visual) -->
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card h-100 border-0 shadow-sm bg-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded-3 text-warning">
-                            <i class="bi bi-clock-history fs-4"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted text-uppercase small mb-1">Ciclo Lectivo</h6>
-                            <h3 class="fw-bold mb-0"><?= $anio_actual ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <!-- Columna Izquierda: Accesos Rápidos -->
-        <div class="col-lg-8">
-            <h5 class="fw-bold mb-3 text-secondary">Accesos Rápidos</h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <a href="modules/alumnos/index.php" class="text-decoration-none">
-                        <div class="card h-100 bg-white border-0 shadow-sm card-hover">
-                            <div class="card-body d-flex align-items-center p-4">
-                                <div class="bg-primary text-white rounded-circle p-3 me-3 shadow-sm">
-                                    <i class="bi bi-backpack4 fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-dark fw-bold mb-1">Alumnos</h5>
-                                    <p class="text-muted small mb-0">Inscripciones, Fichas y Pagos.</p>
-                                </div>
-                                <i class="bi bi-chevron-right ms-auto text-muted"></i>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="modules/cursos/index.php" class="text-decoration-none">
-                        <div class="card h-100 bg-white border-0 shadow-sm card-hover">
-                            <div class="card-body d-flex align-items-center p-4">
-                                <div class="bg-success text-white rounded-circle p-3 me-3 shadow-sm">
-                                    <i class="bi bi-journal-bookmark fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-dark fw-bold mb-1">Cursos</h5>
-                                    <p class="text-muted small mb-0">Listas de asistencia y reportes.</p>
-                                </div>
-                                <i class="bi bi-chevron-right ms-auto text-muted"></i>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="modules/vestimenta/index.php" class="text-decoration-none">
-                        <div class="card h-100 bg-white border-0 shadow-sm card-hover">
-                            <div class="card-body d-flex align-items-center p-4">
-                                <div class="bg-info text-white rounded-circle p-3 me-3 shadow-sm">
-                                    <i class="bi bi-tag fs-4"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-dark fw-bold mb-1">Vestimenta</h5>
-                                    <p class="text-muted small mb-0">Stock y ventas de uniformes.</p>
-                                </div>
-                                <i class="bi bi-chevron-right ms-auto text-muted"></i>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Sección Administración (Solo Admin) -->
-            <?php if ($_SESSION['rol'] === 'Administrador'): ?>
-                <h5 class="fw-bold mb-3 mt-4 text-secondary">Administración</h5>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <a href="modules/usuarios/index.php" class="text-decoration-none">
-                            <div class="card h-100 bg-white border-0 shadow-sm border-start border-danger border-4">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-shield-lock text-danger fs-3 me-3"></i>
-                                        <div>
-                                            <h6 class="text-dark fw-bold mb-0">Usuarios del Sistema</h6>
-                                            <small class="text-muted">Crear o editar accesos</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="modules/ciclos/index.php" class="text-decoration-none">
-                            <div class="card h-100 bg-white border-0 shadow-sm border-start border-danger border-4">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-calendar-range text-danger fs-3 me-3"></i>
-                                        <div>
-                                            <h6 class="text-dark fw-bold mb-0">Ciclos Lectivos</h6>
-                                            <small class="text-muted">Abrir o cerrar años</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Columna Derecha: Panel Lateral -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white fw-bold py-3 border-bottom">
-                    <i class="bi bi-graph-up text-primary me-2"></i> Cursos más poblados
-                </div>
-                <ul class="list-group list-group-flush">
-                    <?php if (count($top_cursos) > 0): ?>
-                        <?php foreach ($top_cursos as $top): ?>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-4 py-3">
-                                <div>
-                                    <span class="fw-bold"><?= htmlspecialchars($top['anio_curso']) ?> "<?= htmlspecialchars($top['division']) ?>"</span>
-                                    <br>
-                                    <small class="text-muted">Turno <?= htmlspecialchars($top['turno']) ?></small>
-                                </div>
-                                <span class="badge bg-light text-primary border border-primary rounded-pill">
-                                    <?= $top['cantidad'] ?>
-                                </span>
-                            </li>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <li class="list-group-item text-center text-muted py-4">
-                            <i class="bi bi-inbox fs-4 d-block mb-2"></i>
-                            Sin inscripciones activas
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<?php
-// Query de recaudación mensual para el gráfico
+// --- Recaudación mensual (gráfico + tarjeta del mes) ---
 $stmt_chart = $pdo->query(
     "SELECT MONTH(fecha) as mes, SUM(monto) as total
      FROM pagos
@@ -300,6 +82,8 @@ $stmt_vest = $pdo->query(
 $vestimenta_por_mes = $stmt_vest->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $meses_es = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+$meses_largos = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+$dias_es = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 $labels = json_encode($meses_es);
 $data_pagos = json_encode(array_map(
     fn($m) => round((float) ($pagos_por_mes[$m] ?? 0), 2),
@@ -309,20 +93,180 @@ $data_vestimenta = json_encode(array_map(
     fn($m) => round((float) ($vestimenta_por_mes[$m] ?? 0), 2),
     range(1, 12)
 ));
+
+$mes_actual = (int) date('n');
+$recaudado_mes = (float) ($pagos_por_mes[$mes_actual] ?? 0) + (float) ($vestimenta_por_mes[$mes_actual] ?? 0);
+$fecha_larga = $dias_es[(int) date('w')] . ' ' . date('j') . ' de ' . $meses_largos[$mes_actual - 1];
+$max_top = 0;
+foreach ($top_cursos as $tc) {
+    $max_top = max($max_top, (int) $tc['cantidad']);
+}
+$nombre_corto = explode(' ', trim($_SESSION['nombre'] ?? ''))[0] ?? '';
+
+// --- INCLUIR CABECERA MAESTRA ---
+// Definimos la ruta base como './' porque estamos en la raíz
+$base_path = './';
+include 'includes/header.php';
 ?>
 
-<div class="container mb-5">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
-            <div>
-                <i class="bi bi-bar-chart-fill text-success me-2"></i> Recaudación Mensual <?= date('Y') ?>
+<div class="container">
+
+    <!-- Encabezado -->
+    <div class="page-head">
+        <div>
+            <div class="page-eyebrow">Ciclo lectivo <?= htmlspecialchars((string) $anio_actual) ?></div>
+            <h1 class="page-title">Panel de control</h1>
+            <p class="page-sub">
+                <?= $nombre_corto !== '' ? 'Hola, ' . htmlspecialchars($nombre_corto) . ' · ' : '' ?>hoy es <?= $fecha_larga ?>.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="modules/alumnos/alta.php" class="btn btn-outline-secondary"><i class="bi bi-person-plus"></i> Nuevo alumno</a>
+            <a href="modules/alumnos/index.php" class="btn btn-primary"><i class="bi bi-search"></i> Buscar alumno</a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Inscriptos <?= htmlspecialchars((string) $anio_actual) ?></span>
+                    <span class="stat-icon is-success"><i class="bi bi-person-check"></i></span>
+                </div>
+                <div class="stat-value"><?= number_format((int) $inscritos_ciclo, 0, ',', '.') ?></div>
+                <div class="stat-foot">Alumnos regulares del ciclo activo</div>
             </div>
-            <a href="modules/pagos/index.php" class="btn btn-sm btn-outline-success">
-                <i class="bi bi-cash-stack"></i> Ver Reporte Completo
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Cursos activos</span>
+                    <span class="stat-icon"><i class="bi bi-grid-3x3-gap"></i></span>
+                </div>
+                <div class="stat-value"><?= number_format((int) $total_cursos, 0, ',', '.') ?></div>
+                <div class="stat-foot">Con al menos un alumno regular</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Recaudado en <?= $meses_largos[$mes_actual - 1] ?></span>
+                    <span class="stat-icon is-sol"><i class="bi bi-cash-stack"></i></span>
+                </div>
+                <div class="stat-value">$ <?= number_format($recaudado_mes, 0, ',', '.') ?></div>
+                <div class="stat-foot">Cuotas y vestimenta</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Total histórico</span>
+                    <span class="stat-icon"><i class="bi bi-people"></i></span>
+                </div>
+                <div class="stat-value"><?= number_format((int) $total_alumnos, 0, ',', '.') ?></div>
+                <div class="stat-foot">Alumnos registrados en el sistema</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Accesos rápidos -->
+        <div class="col-lg-8">
+            <h2 class="section-title">Accesos rápidos</h2>
+            <div class="row g-3">
+                <?php
+                $accesos = [
+                    ['modules/alumnos/index.php',    'bi-backpack4',        'Alumnos',    'Fichas, inscripciones y pagos'],
+                    ['modules/cursos/index.php',     'bi-journal-bookmark', 'Cursos',     'Listas por año, división y turno'],
+                    ['modules/pagos/index.php',      'bi-receipt',          'Pagos',      'Recibos y reportes de cobro'],
+                    ['modules/tutores/index.php',    'bi-person-vcard',     'Tutores',    'Contactos y alumnos a cargo'],
+                    ['modules/vestimenta/index.php', 'bi-tag',              'Vestimenta', 'Stock y ventas de uniformes'],
+                    ['modules/vestimenta/nueva_venta.php', 'bi-bag-plus',   'Nueva venta', 'Vender prendas del uniforme'],
+                ];
+                foreach ($accesos as [$href, $icono, $titulo, $desc]): ?>
+                    <div class="col-sm-6 col-md-4">
+                        <a href="<?= $href ?>" class="quick-link">
+                            <span class="quick-link-icon"><i class="bi <?= $icono ?>"></i></span>
+                            <span>
+                                <span class="quick-link-title"><?= $titulo ?></span>
+                                <span class="quick-link-desc"><?= $desc ?></span>
+                            </span>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if (($_SESSION['rol'] ?? '') === 'Administrador'): ?>
+                <h2 class="section-title mt-4">Administración</h2>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="modules/usuarios/index.php" class="quick-link is-admin">
+                            <span class="quick-link-icon"><i class="bi bi-shield-lock"></i></span>
+                            <span>
+                                <span class="quick-link-title">Usuarios del sistema</span>
+                                <span class="quick-link-desc">Crear o editar accesos</span>
+                            </span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="modules/ciclos/index.php" class="quick-link is-admin">
+                            <span class="quick-link-icon"><i class="bi bi-calendar-range"></i></span>
+                            <span>
+                                <span class="quick-link-title">Ciclos lectivos</span>
+                                <span class="quick-link-desc">Abrir o cerrar años</span>
+                            </span>
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Cursos más poblados -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Cursos más poblados</span>
+                    <a href="modules/cursos/index.php" class="small fw-semibold text-decoration-none">Ver todos</a>
+                </div>
+                <?php if (count($top_cursos) > 0): ?>
+                    <ul class="rank-list">
+                        <?php foreach ($top_cursos as $top):
+                            $pct = $max_top > 0 ? round(((int) $top['cantidad'] / $max_top) * 100) : 0; ?>
+                            <li class="rank-item">
+                                <div class="rank-row">
+                                    <span>
+                                        <span class="rank-name"><?= htmlspecialchars($top['anio_curso']) ?> «<?= htmlspecialchars($top['division']) ?>»</span>
+                                        <span class="rank-meta">· Turno <?= htmlspecialchars($top['turno']) ?></span>
+                                    </span>
+                                    <span class="rank-count"><?= (int) $top['cantidad'] ?></span>
+                                </div>
+                                <div class="rank-bar" aria-hidden="true"><span style="width: <?= $pct ?>%"></span></div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        Sin inscripciones activas
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recaudación mensual -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span>Recaudación mensual <?= date('Y') ?></span>
+            <a href="modules/pagos/index.php" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-cash-stack"></i> Ver reporte completo
             </a>
         </div>
-        <div class="card-body py-4">
-            <canvas id="chartPagosMensuales" height="90"></canvas>
+        <div class="card-body">
+            <canvas id="chartPagosMensuales" height="90" aria-label="Gráfico de recaudación mensual por cuotas y vestimenta" role="img"></canvas>
         </div>
     </div>
 </div>
@@ -330,6 +274,12 @@ $data_vestimenta = json_encode(array_map(
 <script src="assets/js/chart.umd.min.js"></script>
 <script>
     (function () {
+        const css = getComputedStyle(document.documentElement);
+        const tok = name => css.getPropertyValue(name).trim();
+        Chart.defaults.font.family = tok('--font-sans');
+        Chart.defaults.color = tok('--ink-muted');
+        Chart.defaults.borderColor = tok('--line');
+
         const ctx = document.getElementById('chartPagosMensuales');
         new Chart(ctx, {
             type: 'bar',
@@ -337,38 +287,36 @@ $data_vestimenta = json_encode(array_map(
                 labels: <?= $labels ?>,
                 datasets: [
                     {
-                        label: 'Cuotas / Pagos ($)',
+                        label: 'Cuotas / Pagos',
                         data: <?= $data_pagos ?>,
-                        backgroundColor: 'rgba(25, 135, 84, 0.15)',
-                        borderColor: 'rgba(25, 135, 84, 0.85)',
-                        borderWidth: 2,
-                        borderRadius: 6,
-                        hoverBackgroundColor: 'rgba(25, 135, 84, 0.3)',
+                        backgroundColor: tok('--brand'),
+                        borderRadius: 4,
+                        maxBarThickness: 28,
                     },
                     {
-                        label: 'Vestimenta ($)',
+                        label: 'Vestimenta',
                         data: <?= $data_vestimenta ?>,
-                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
-                        borderColor: 'rgba(13, 110, 253, 0.85)',
-                        borderWidth: 2,
-                        borderRadius: 6,
-                        hoverBackgroundColor: 'rgba(13, 110, 253, 0.3)',
+                        backgroundColor: tok('--celeste'),
+                        borderRadius: 4,
+                        maxBarThickness: 28,
                     }
                 ]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { display: true, position: 'top' },
+                    legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 12, boxHeight: 12, useBorderRadius: true, borderRadius: 3 } },
                     tooltip: {
                         callbacks: {
-                            label: ctx => '$ ' + ctx.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2 })
+                            label: ctx => ctx.dataset.label + ': $ ' + ctx.parsed.y.toLocaleString('es-AR', { minimumFractionDigits: 2 })
                         }
                     }
                 },
                 scales: {
+                    x: { grid: { display: false } },
                     y: {
                         beginAtZero: true,
+                        border: { display: false },
                         ticks: {
                             callback: v => '$ ' + Number(v).toLocaleString('es-AR')
                         }

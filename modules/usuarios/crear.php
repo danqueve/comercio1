@@ -8,6 +8,7 @@ require_role(['Administrador']);
 require_once '../../config/csrf.php';
 
 $mensaje = '';
+$tipo_alerta = '';
 
 // Obtener roles para el select
 $roles = $pdo->query("SELECT * FROM roles")->fetchAll();
@@ -20,20 +21,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rol_id   = $_POST['rol_id'];
 
     if (empty($nombre) || empty($usuario) || empty($password)) {
-        $mensaje = '<div class="alert alert-danger shadow-sm border-0"><i class="bi bi-x-circle-fill me-2"></i> Todos los campos son obligatorios.</div>';
+        $mensaje = 'Todos los campos son obligatorios.';
+        $tipo_alerta = 'danger';
     } else {
         // Verificar si el usuario ya existe
         $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE usuario = :user");
         $stmt->execute(['user' => $usuario]);
-        
+
         if ($stmt->rowCount() > 0) {
-            $mensaje = '<div class="alert alert-warning shadow-sm border-0"><i class="bi bi-exclamation-triangle-fill me-2"></i> El nombre de usuario ya existe. Elija otro.</div>';
+            $mensaje = 'El nombre de usuario ya existe. Elija otro.';
+            $tipo_alerta = 'warning';
         } else {
             // ENCRIPTAR CLAVE
             $hash = password_hash($password, PASSWORD_DEFAULT);
 
             try {
-                $sql = "INSERT INTO usuarios (usuario, password, nombre_completo, id_rol, activo) 
+                $sql = "INSERT INTO usuarios (usuario, password, nombre_completo, id_rol, activo)
                         VALUES (:user, :pass, :nom, :rol, 1)";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([
@@ -42,12 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'nom'  => $nombre,
                     'rol'  => $rol_id
                 ]);
-                
-                $mensaje = '<div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> ¡Usuario creado correctamente!</div>';
+
+                $mensaje = '¡Usuario creado correctamente!';
+                $tipo_alerta = 'success';
                 audit_log($pdo, 'ALTA_USUARIO', "Usuario: $usuario | Nombre: $nombre");
             } catch (PDOException $e) {
                 log_error('CREAR_USUARIO', $e->getMessage());
-                $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error interno. Por favor, intente nuevamente.</div>';
+                $mensaje = 'Error interno. Por favor, intente nuevamente.';
+                $tipo_alerta = 'danger';
             }
         }
     }
@@ -79,8 +84,9 @@ include $base_path . 'includes/header.php';
                 <div class="card-body p-4">
                     
                     <?php if ($mensaje): ?>
-                        <div class="mb-4">
-                            <?= $mensaje ?>
+                        <div class="alert alert-<?= $tipo_alerta ?> shadow-sm border-0 mb-4">
+                            <i class="bi bi-<?= $tipo_alerta === 'success' ? 'check-circle-fill' : ($tipo_alerta === 'warning' ? 'exclamation-triangle-fill' : 'x-circle-fill') ?> me-2"></i>
+                            <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
                         </div>
                     <?php endif; ?>
 

@@ -1,9 +1,8 @@
-<div class="container mt-5 pb-4">
-        <div class="text-center text-muted small">
-            <hr>
-            <p class="mb-1">&copy; <?= date('Y') ?> Escuela de Comercio N° 1 - Gral. Manuel Belgrano</p>
-            <p>Sistema de Gestión Escolar v1.0</p>
-        </div>
+            <footer class="app-footer">
+                <span>&copy; <?= date('Y') ?> Escuela de Comercio N°1 «Gral. Manuel Belgrano»</span>
+                <span>Sistema de Gestión Escolar v1.1</span>
+            </footer>
+        </main>
     </div>
 
     <!-- Bootstrap JS Bundle (local) -->

@@ -85,7 +85,7 @@ include $base_path . 'includes/header.php';
                     <!-- Alertas -->
                     <?php if (!empty($mensaje)): ?>
                         <div class="alert alert-<?= $tipo_alerta ?> alert-dismissible fade show" role="alert">
-                            <?= $mensaje ?>
+                            <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>

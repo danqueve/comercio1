@@ -8,6 +8,7 @@ require_once '../../config/csrf.php';
 
 $id_usuario = $_GET['id'] ?? null;
 $mensaje = '';
+$tipo_alerta = '';
 
 if (!$id_usuario) {
     header('Location: index.php');
@@ -35,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $activo   = $_POST['activo'];
 
     if (empty($nombre) || empty($user_login)) {
-        $mensaje = '<div class="alert alert-danger shadow-sm border-0"><i class="bi bi-x-circle-fill me-2"></i> Nombre y Usuario son obligatorios.</div>';
+        $mensaje = 'Nombre y Usuario son obligatorios.';
+        $tipo_alerta = 'danger';
     } else {
         try {
             // Lógica para contraseña: ¿La cambiaron?
@@ -66,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             
-            $mensaje = '<div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> Usuario actualizado correctamente.</div>';
+            $mensaje = 'Usuario actualizado correctamente.';
+            $tipo_alerta = 'success';
             
             // Recargar datos para ver cambios en el form
             $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = :id");
@@ -75,7 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } catch (PDOException $e) {
             log_error('EDITAR_USUARIO', $e->getMessage());
-            $mensaje = '<div class="alert alert-danger shadow-sm border-0">Error interno. Por favor, intente nuevamente.</div>';
+            $mensaje = 'Error interno. Por favor, intente nuevamente.';
+            $tipo_alerta = 'danger';
         }
     }
 }
@@ -106,8 +110,9 @@ include $base_path . 'includes/header.php';
                 <div class="card-body p-4">
                     
                     <?php if ($mensaje): ?>
-                        <div class="mb-4">
-                            <?= $mensaje ?>
+                        <div class="alert alert-<?= $tipo_alerta ?> shadow-sm border-0 mb-4">
+                            <i class="bi bi-<?= $tipo_alerta === 'success' ? 'check-circle-fill' : 'x-circle-fill' ?> me-2"></i>
+                            <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
                         </div>
                     <?php endif; ?>
 
