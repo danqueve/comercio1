@@ -165,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
                 <?php if(!empty($error)): ?>
                     <div class="alert alert-danger d-flex align-items-center small" role="alert">
                         <i class="bi bi-exclamation-circle-fill me-2"></i>
-                        <div><?= $error ?></div>
+                        <div><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
                     </div>
                 <?php endif; ?>
 

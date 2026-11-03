@@ -118,7 +118,7 @@ include $base_path . 'includes/header.php';
                     <!-- Mensajes de Alerta -->
                     <?php if (!empty($mensaje)): ?>
                         <div class="alert alert-<?= $tipo_alerta ?> alert-dismissible fade show" role="alert">
-                            <?= $mensaje ?>
+                            <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
@@ -195,14 +195,14 @@ include $base_path . 'includes/header.php';
                                 <?php if (count($alumnos_vinculados) > 0): ?>
                                     <?php foreach ($alumnos_vinculados as $alu): ?>
                                         <tr>
-                                            <td class="ps-3"><?= $alu['dni'] ?></td>
+                                            <td class="ps-3"><?= htmlspecialchars($alu['dni'], ENT_QUOTES, 'UTF-8') ?></td>
                                             <td class="fw-bold text-dark">
-                                                <?= $alu['apellido'] ?>, <?= $alu['nombre'] ?>
+                                                <?= htmlspecialchars($alu['apellido'], ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars($alu['nombre'], ENT_QUOTES, 'UTF-8') ?>
                                             </td>
                                             <td>
                                                 <?php if ($alu['anio_curso']): ?>
                                                     <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                                        <?= $alu['anio_curso'] ?> "<?= $alu['division'] ?>"
+                                                        <?= htmlspecialchars($alu['anio_curso'], ENT_QUOTES, 'UTF-8') ?> "<?= htmlspecialchars($alu['division'], ENT_QUOTES, 'UTF-8') ?>"
                                                     </span>
                                                 <?php else: ?>
                                                     <span class="text-muted small">No inscripto</span>

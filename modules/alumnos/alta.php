@@ -8,6 +8,7 @@ require_login();
 
 $mensaje = '';
 $tipo_alerta = '';
+$nuevo_alumno_link = '';
 
 // --- PROCESAR FORMULARIO ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -122,12 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         audit_log($pdo, 'ALTA_ALUMNO', "DNI: $alu_dni | Nombre: $alu_apellido $alu_nombre");
         invalidar_cache_dashboard();
         
-        // Mensaje con botón para inscribir inmediatamente
-        $mensaje = "¡Alumno registrado correctamente! <br> 
-                    <a href='../inscripciones/nueva.php?id_alumno=$nuevo_alumno_id' class='btn btn-light btn-sm mt-2 shadow-sm border'>
-                        <i class='bi bi-journal-check'></i> Inscribir al Ciclo Lectivo &rarr;
-                    </a>";
+        $mensaje = "¡Alumno registrado correctamente!";
         $tipo_alerta = "success";
+        $nuevo_alumno_link = "../inscripciones/nueva.php?id_alumno=" . (int) $nuevo_alumno_id;
 
     } catch (Exception $e) {
         // Si algo falló, deshacemos todo
@@ -170,7 +168,13 @@ include $base_path . 'includes/header.php';
                             <?php else: ?>
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             <?php endif; ?>
-                            <?= $mensaje ?>
+                            <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
+                            <?php if ($nuevo_alumno_link): ?>
+                                <br>
+                                <a href="<?= htmlspecialchars($nuevo_alumno_link, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light btn-sm mt-2 shadow-sm border">
+                                    <i class="bi bi-journal-check"></i> Inscribir al Ciclo Lectivo &rarr;
+                                </a>
+                            <?php endif; ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     <?php endif; ?>

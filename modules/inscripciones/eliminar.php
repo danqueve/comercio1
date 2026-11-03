@@ -4,11 +4,7 @@ require_once '../../config/conexion.php';
 require_once '../../config/csrf.php';
 require_once '../../config/logger.php';
 
-// Verificación de seguridad
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../login.php');
-    exit;
-}
+require_role(['Administrador', 'Supervisor']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify(); // Validar token CSRF antes de cualquier acción

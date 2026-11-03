@@ -218,9 +218,9 @@ include $base_path . 'includes/header.php';
                         <label class="form-label fw-bold small text-muted">Localidad</label>
                         <select name="localidad" class="form-select">
                             <?php foreach ($localidades as $loc): ?>
-                                <option value="<?= $loc ?>"
+                                <option value="<?= htmlspecialchars($loc, ENT_QUOTES, 'UTF-8') ?>"
                                     <?= ($alumno['localidad'] ?? '') === $loc ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($loc) ?>
+                                    <?= htmlspecialchars($loc, ENT_QUOTES, 'UTF-8') ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
