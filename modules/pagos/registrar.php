@@ -95,7 +95,7 @@ include $base_path . 'includes/header.php';
                     
                     <?php if($mensaje): ?>
                         <div class="alert alert-danger shadow-sm border-0 mb-4">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= $mensaje ?>
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') ?>
                         </div>
                     <?php endif; ?>
                     

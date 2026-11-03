@@ -4,7 +4,7 @@ require_once '../../config/conexion.php';
 require_once '../../config/csrf.php';
 require_once '../../config/logger.php';
 
-require_login();
+require_role(['Administrador', 'Supervisor']);
 
 // Solo acepta POST para operaciones destructivas
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

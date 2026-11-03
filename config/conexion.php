@@ -7,7 +7,11 @@
 require_once __DIR__ . '/logger.php';
 
 // --- Leer .env manualmente (sin dependencias externas) ---
-$env_file = __DIR__ . '/../.env';
+// Buscar primero fuera del document root (más seguro), luego dentro como fallback
+$env_file = __DIR__ . '/../../.env';
+if (!file_exists($env_file)) {
+    $env_file = __DIR__ . '/../.env';
+}
 if (file_exists($env_file)) {
     $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
